@@ -1,0 +1,8 @@
+Debug/*
+.vscode/*
+DiPan_CubeIDE Debug.launch
+.settings/language.settings.xml
+MDK-ARM/*
+!MDK-ARM/*.uvoptx
+!MDK-ARM/*.uvprojx
+!MDK-ARM/startup_stm32f407xx.s
