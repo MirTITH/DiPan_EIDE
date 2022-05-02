@@ -42,8 +42,14 @@ void StartDefaultTask(void const *argument)
 			}
 
 			// printf("\n");
-			UD_printf("Time:%lu, freq:%.2lf\n",tick2 - tick1, 1000000.0 / (tick2 - tick1));
+			UD_printf("  ADS1256 time:%lu us  ",tick2 - tick1);
+			UD_printf("print time:%lu us\n",get_time_us() - tick2);
 		}
+		else
+		{
+			ADS1256_UpdateDiffData();
+		}
+
 		osDelay(10);
 	}
 }

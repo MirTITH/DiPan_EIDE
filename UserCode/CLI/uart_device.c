@@ -2,7 +2,7 @@
  * @file uart_device.c
  * @author TITH (1023515576@qq.com)
  * @brief UART设备框架，用于统一管理FreeRTOS下UART的使用，避免多线程下的冲突
- * @version 1.3
+ * @version 2.0
  * @date 2022-02-11
  *
  * @copyright Copyright (c) 2022

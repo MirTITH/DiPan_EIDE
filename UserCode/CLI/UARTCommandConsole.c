@@ -123,7 +123,7 @@ static void prvUARTCommandConsoleTask( void *pvParameters )
 		while( xSerialGetChar( xPort, &cRxedChar, portMAX_DELAY ) != pdPASS );
 
 		/* Echo the character back. */
-		xSerialPutChar( xPort, cRxedChar, portMAX_DELAY );
+		// xSerialPutChar( xPort, cRxedChar, portMAX_DELAY );
 
 		/* Was it the end of the line? */
 		if( cRxedChar == '\n' || cRxedChar == '\r' )
