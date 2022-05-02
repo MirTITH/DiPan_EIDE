@@ -87,7 +87,7 @@ signed portBASE_TYPE xSerialGetChar( xComPortHandle pxPort, signed char *pcRxedC
 
 	/* Get the next character from the buffer.  Return false if no characters
 	are available, or arrive before xBlockTime expires. */
-	if (UartDevice_Read(cli_uart_device, pcRxedChar, xBlockTime))
+	if (UD_Read(cli_uart_device, pcRxedChar, xBlockTime))
 	{
 		return pdTRUE;
 	}
@@ -100,14 +100,14 @@ signed portBASE_TYPE xSerialGetChar( xComPortHandle pxPort, signed char *pcRxedC
 
 void vSerialPutString(xComPortHandle pxPort, const signed char *const pcString, unsigned short usStringLength)
 {
-	UartDevice_WriteStr(cli_uart_device, (const char*)pcString, usStringLength, portMAX_DELAY);
-	UartDevice_Sync(cli_uart_device);
+	UD_WriteStr(cli_uart_device, (const char*)pcString, usStringLength, portMAX_DELAY);
+	UD_Sync(cli_uart_device);
 }
 /*-----------------------------------------------------------*/
 
 signed portBASE_TYPE xSerialPutChar(xComPortHandle pxPort, signed char cOutChar, TickType_t xBlockTime)
 {
-	return UartDevice_WriteChar(cli_uart_device, cOutChar, portMAX_DELAY);
+	return UD_WriteChar(cli_uart_device, cOutChar, portMAX_DELAY);
 }
 /*-----------------------------------------------------------*/
 

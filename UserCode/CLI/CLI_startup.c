@@ -21,8 +21,8 @@ void CLI_Init(UART_HandleTypeDef *huart)
 {
 	/* creation of cli */
 	CLI_huart = huart;
-	cli_uart_device = UartDevice_New(CLI_huart, 256, 64, UartDevice_DMA, UartDevice_IT);
-	UartDevice_Open(cli_uart_device);
+	cli_uart_device = UD_New(CLI_huart, 256, 64, UartDevice_DMA, UartDevice_IT);
+	UD_Open(cli_uart_device);
 	osThreadDef(CLI, cli_task, osPriorityBelowNormal, 0, 128);
 	cli_taskHandle = osThreadCreate(osThread(CLI), NULL);
 }

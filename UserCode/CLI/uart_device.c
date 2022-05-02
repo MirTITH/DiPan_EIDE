@@ -20,12 +20,12 @@ static UART_DEVICE *uart_devices[MAX_UartDevice_Num] = {NULL};
 
 UART_DEVICE *printf_uart_device = NULL;
 
-void UartDevice_SetPrintfDevice(UART_DEVICE *uart_device)
+void UD_SetPrintfDevice(UART_DEVICE *uart_device)
 {
 	printf_uart_device = uart_device;
 }
 
-BaseType_t UartDevice_printf(const char *format, ...)
+BaseType_t UD_printf(const char *format, ...)
 {
 	if (printf_uart_device == NULL || printf_uart_device->is_open == pdFALSE)
 		return pdFAIL;
@@ -46,7 +46,7 @@ BaseType_t UartDevice_printf(const char *format, ...)
 	return pdFAIL;
 }
 
-BaseType_t UartDevice_Receive_DMA(UART_HandleTypeDef *huart, char *pData, uint16_t size)
+BaseType_t UD_Receive_DMA(UART_HandleTypeDef *huart, char *pData, uint16_t size)
 {
 	huart->ReceptionType = HAL_UART_RECEPTION_STANDARD;
 	HAL_StatusTypeDef result = UART_Start_Receive_DMA(huart, (uint8_t *)pData, 1);
@@ -60,7 +60,7 @@ BaseType_t UartDevice_Receive_DMA(UART_HandleTypeDef *huart, char *pData, uint16
 	}
 }
 
-BaseType_t UartDevice_Receive_IT(UART_HandleTypeDef *huart, char *pData, uint16_t size)
+BaseType_t UD_Receive_IT(UART_HandleTypeDef *huart, char *pData, uint16_t size)
 {
 	huart->ReceptionType = HAL_UART_RECEPTION_STANDARD;
 	HAL_StatusTypeDef result = UART_Start_Receive_IT(huart, (uint8_t *)pData, size);
@@ -74,7 +74,7 @@ BaseType_t UartDevice_Receive_IT(UART_HandleTypeDef *huart, char *pData, uint16_
 	}
 }
 
-BaseType_t UartDevice_Transmit_DMA(UART_HandleTypeDef *huart, const char *pData, uint16_t size)
+BaseType_t UD_Transmit_DMA(UART_HandleTypeDef *huart, const char *pData, uint16_t size)
 {
 	HAL_StatusTypeDef result = HAL_UART_Transmit_DMA(huart, (uint8_t *)pData, size);
 	if (result == HAL_OK)
@@ -87,7 +87,7 @@ BaseType_t UartDevice_Transmit_DMA(UART_HandleTypeDef *huart, const char *pData,
 	}
 }
 
-BaseType_t UartDevice_Transmit_IT(UART_HandleTypeDef *huart, const char *pData, uint16_t size)
+BaseType_t UD_Transmit_IT(UART_HandleTypeDef *huart, const char *pData, uint16_t size)
 {
 	HAL_StatusTypeDef result = HAL_UART_Transmit_IT(huart, (uint8_t *)pData, size);
 	if (result == HAL_OK)
@@ -100,7 +100,7 @@ BaseType_t UartDevice_Transmit_IT(UART_HandleTypeDef *huart, const char *pData, 
 	}
 }
 
-BaseType_t UartDevice_Transmit(UART_HandleTypeDef *huart, const char *pData, uint16_t size, uint32_t timeout)
+BaseType_t UD_Transmit(UART_HandleTypeDef *huart, const char *pData, uint16_t size, uint32_t timeout)
 {
 
 	HAL_StatusTypeDef result = HAL_UART_Transmit(huart, (uint8_t *)pData, size, timeout);
@@ -114,7 +114,7 @@ BaseType_t UartDevice_Transmit(UART_HandleTypeDef *huart, const char *pData, uin
 	}
 }
 
-BaseType_t UartDevice_Open(UART_DEVICE *uart_device)
+BaseType_t UD_Open(UART_DEVICE *uart_device)
 {
 	if (uart_device == NULL)
 		return pdFAIL;
@@ -125,7 +125,7 @@ BaseType_t UartDevice_Open(UART_DEVICE *uart_device)
 	return pdPASS;
 }
 
-void UartDevice_Close(UART_DEVICE *uart_device)
+void UD_Close(UART_DEVICE *uart_device)
 {
 	if (uart_device == NULL)
 		return;
@@ -133,7 +133,7 @@ void UartDevice_Close(UART_DEVICE *uart_device)
 	uart_device->is_open = pdFALSE;
 }
 
-UART_DEVICE *UartDevice_Find(UART_HandleTypeDef *huart)
+UART_DEVICE *UD_Find(UART_HandleTypeDef *huart)
 {
 	if (huart == NULL)
 		return NULL;
@@ -149,7 +149,7 @@ UART_DEVICE *UartDevice_Find(UART_HandleTypeDef *huart)
 	return NULL;
 }
 
-UART_DEVICE *UartDevice_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length, uint16_t rx_queue_length, UartDevice_Mode tx_mode, UartDevice_Mode rx_mode)
+UART_DEVICE *UD_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length, uint16_t rx_queue_length, UartDevice_Mode tx_mode, UartDevice_Mode rx_mode)
 {
 	if (huart == NULL)
 		return NULL;
@@ -175,7 +175,7 @@ UART_DEVICE *UartDevice_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length
 				if (uart_devices[i]->tx_buffer == NULL) // 内存不足
 				{
 					// 删除创建了一半的设备
-					UartDevice_Del(uart_devices[i]);
+					UD_Del(uart_devices[i]);
 					return NULL;
 				}
 			}
@@ -190,7 +190,7 @@ UART_DEVICE *UartDevice_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length
 			if (uart_devices[i]->tx_sem == NULL) // 内存不足
 			{
 				// 删除创建了一半的设备
-				UartDevice_Del(uart_devices[i]);
+				UD_Del(uart_devices[i]);
 				return NULL;
 			}
 
@@ -202,7 +202,7 @@ UART_DEVICE *UartDevice_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length
 				if (uart_devices[i]->rx_queue == NULL) // 内存不足
 				{
 					// 删除创建了一半的设备
-					UartDevice_Del(uart_devices[i]);
+					UD_Del(uart_devices[i]);
 					return NULL;
 				}
 			}
@@ -218,29 +218,29 @@ UART_DEVICE *UartDevice_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length
 			switch (tx_mode)
 			{
 			case UartDevice_DMA:
-				uart_devices[i]->TxFunc = UartDevice_Transmit_DMA;
-				uart_devices[i]->TxFuncBlock = UartDevice_Transmit;
+				uart_devices[i]->TxFunc = UD_Transmit_DMA;
+				uart_devices[i]->TxFuncBlock = UD_Transmit;
 				break;
 			case UartDevice_IT:
-				uart_devices[i]->TxFunc = UartDevice_Transmit_IT;
-				uart_devices[i]->TxFuncBlock = UartDevice_Transmit;
+				uart_devices[i]->TxFunc = UD_Transmit_IT;
+				uart_devices[i]->TxFuncBlock = UD_Transmit;
 				break;
 			default:
-				uart_devices[i]->TxFunc = UartDevice_Transmit_IT;
-				uart_devices[i]->TxFuncBlock = UartDevice_Transmit;
+				uart_devices[i]->TxFunc = UD_Transmit_IT;
+				uart_devices[i]->TxFuncBlock = UD_Transmit;
 				break;
 			}
 
 			switch (rx_mode)
 			{
 			case UartDevice_DMA:
-				uart_devices[i]->RxFunc = UartDevice_Receive_DMA;
+				uart_devices[i]->RxFunc = UD_Receive_DMA;
 				break;
 			case UartDevice_IT:
-				uart_devices[i]->RxFunc = UartDevice_Receive_IT;
+				uart_devices[i]->RxFunc = UD_Receive_IT;
 				break;
 			default:
-				uart_devices[i]->RxFunc = UartDevice_Receive_IT;
+				uart_devices[i]->RxFunc = UD_Receive_IT;
 				break;
 			}
 
@@ -251,7 +251,7 @@ UART_DEVICE *UartDevice_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length
 	return NULL;
 }
 
-void UartDevice_Del(UART_DEVICE *uart_device)
+void UD_Del(UART_DEVICE *uart_device)
 {
 	if (uart_device == NULL)
 		return;
@@ -297,7 +297,7 @@ void UartDevice_Del(UART_DEVICE *uart_device)
 	uart_device = NULL;
 }
 
-BaseType_t UartDevice_WriteStr(UART_DEVICE *uart_device, const char *str, uint16_t length, uint32_t timeout)
+BaseType_t UD_WriteStr(UART_DEVICE *uart_device, const char *str, uint16_t length, uint32_t timeout)
 {
 	if (uart_device == NULL || uart_device->is_open == pdFALSE)
 		return pdFAIL;
@@ -311,7 +311,7 @@ BaseType_t UartDevice_WriteStr(UART_DEVICE *uart_device, const char *str, uint16
 	return pdFAIL;
 }
 
-BaseType_t UartDevice_WriteStrCopy(UART_DEVICE *uart_device, const char *str, uint16_t length, uint32_t timeout)
+BaseType_t UD_WriteStrCopy(UART_DEVICE *uart_device, const char *str, uint16_t length, uint32_t timeout)
 {
 	if (uart_device == NULL || uart_device->is_open == pdFALSE)
 		return pdFAIL;
@@ -330,7 +330,7 @@ BaseType_t UartDevice_WriteStrCopy(UART_DEVICE *uart_device, const char *str, ui
 	return pdFAIL;
 }
 
-BaseType_t UartDevice_WriteChar(UART_DEVICE *uart_device, char cha, uint32_t timeout)
+BaseType_t UD_WriteChar(UART_DEVICE *uart_device, char cha, uint32_t timeout)
 {
 	if (uart_device == NULL || uart_device->is_open == pdFALSE)
 		return pdFAIL;
@@ -346,7 +346,7 @@ BaseType_t UartDevice_WriteChar(UART_DEVICE *uart_device, char cha, uint32_t tim
 	return pdFAIL;
 }
 
-void UartDevice_Sync(UART_DEVICE *uart_device)
+void UD_Sync(UART_DEVICE *uart_device)
 {
 	if (uart_device == NULL || uart_device->is_open == pdFALSE)
 		return;
@@ -354,7 +354,7 @@ void UartDevice_Sync(UART_DEVICE *uart_device)
 	xSemaphoreGive(uart_device->tx_sem);
 }
 
-BaseType_t UartDevice_Read(UART_DEVICE *uart_device, void *const read_buffer, uint32_t timeout)
+BaseType_t UD_Read(UART_DEVICE *uart_device, void *const read_buffer, uint32_t timeout)
 {
 	if (uart_device == NULL || uart_device->is_open == pdFALSE)
 		return pdFAIL;
@@ -362,9 +362,9 @@ BaseType_t UartDevice_Read(UART_DEVICE *uart_device, void *const read_buffer, ui
 	return xQueueReceive(uart_device->rx_queue, read_buffer, timeout);
 }
 
-void UartDevice_TxCpltCallback(UART_HandleTypeDef *huart)
+void UD_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	UART_DEVICE *uart_device = UartDevice_Find(huart);
+	UART_DEVICE *uart_device = UD_Find(huart);
 
 	if (uart_device != NULL && uart_device->is_open != pdFALSE)
 	{
@@ -374,9 +374,9 @@ void UartDevice_TxCpltCallback(UART_HandleTypeDef *huart)
 	}
 }
 
-void UartDevice_RxCpltCallback(UART_HandleTypeDef *huart)
+void UD_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	UART_DEVICE *uart_device = UartDevice_Find(huart);
+	UART_DEVICE *uart_device = UD_Find(huart);
 
 	if (uart_device != NULL && uart_device->is_open != pdFALSE)
 	{
@@ -389,10 +389,10 @@ void UartDevice_RxCpltCallback(UART_HandleTypeDef *huart)
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	UartDevice_TxCpltCallback(huart);
+	UD_TxCpltCallback(huart);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	UartDevice_RxCpltCallback(huart);
+	UD_RxCpltCallback(huart);
 }

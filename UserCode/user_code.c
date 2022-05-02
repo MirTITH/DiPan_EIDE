@@ -19,7 +19,7 @@ int ads_read_data_sw = 1; // ADS打印开关
 void StartDefaultTask(void const *argument)
 {
 	CLI_Init(&huart3);
-	UartDevice_SetPrintfDevice(UartDevice_Find(&huart3));
+	UD_SetPrintfDevice(UD_Find(&huart3));
 
 	osDelay(1000);
 	// printf("Init ADS1256\n");
@@ -38,11 +38,11 @@ void StartDefaultTask(void const *argument)
 			
 			for(int8_t i = 0; i < 4; i++)
 			{
-				UartDevice_printf("%8.5lf  ", (double)ADS1256_diff_data[i] / (1 << 23) * 5 * (5.49 + 4.53)/4.53);
+				UD_printf("%8.5lf  ", (double)ADS1256_diff_data[i] / (1 << 23) * 5 * (5.49 + 4.53)/4.53);
 			}
 
 			// printf("\n");
-			UartDevice_printf("Time:%lu, freq:%.2lf\n",tick2 - tick1, 1000000.0 / (tick2 - tick1));
+			UD_printf("Time:%lu, freq:%.2lf\n",tick2 - tick1, 1000000.0 / (tick2 - tick1));
 		}
 		osDelay(10);
 	}

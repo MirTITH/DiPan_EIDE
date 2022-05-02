@@ -11,12 +11,12 @@
  * 一次传输整个字符串：
  * printf("%s")               92
  * HAL_UART_Transmit()        72
- * UartDevice_WriteStr()      72
- * UartDevice_WriteStrCopy()  72
+ * UD_WriteStr()      72
+ * UD_WriteStrCopy()  72
  * 
  * 一次传输一个字符：
  * HAL_UART_Transmit()        86
- * UartDevice_WriteChar()     115
+ * UD_WriteChar()     115
  *
  * @copyright Copyright (c) 2022
  *
@@ -60,7 +60,7 @@ typedef enum
  * @param rx_mode 接收模式（建议 UartDevice_IT ）
  * @return UART_DEVICE* 对应的UART_DEVICE(失败则返回NULL)
  */
-UART_DEVICE *UartDevice_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length, uint16_t rx_queue_length, UartDevice_Mode tx_mode, UartDevice_Mode rx_mode);
+UART_DEVICE *UD_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length, uint16_t rx_queue_length, UartDevice_Mode tx_mode, UartDevice_Mode rx_mode);
 
 /**
  * @brief 查找对应的UART_DEVICE
@@ -68,14 +68,14 @@ UART_DEVICE *UartDevice_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length
  * @param huart 串口句柄
  * @return UART_DEVICE* 对应的查找对应的UART_DEVICE指针（未找到返回NULL)
  */
-UART_DEVICE *UartDevice_Find(UART_HandleTypeDef *huart);
+UART_DEVICE *UD_Find(UART_HandleTypeDef *huart);
 
 /**
  * @brief 删除UartDevice，释放内存。确保删除时该设备未使用
  *
  * @param uart_device
  */
-void UartDevice_Del(UART_DEVICE *uart_device);
+void UD_Del(UART_DEVICE *uart_device);
 
 /**
  * @brief 打开串口设备
@@ -83,14 +83,14 @@ void UartDevice_Del(UART_DEVICE *uart_device);
  * @param uart_device 串口设备
  * @return BaseType_t 成功：pdPASS；失败：pdFAIL
  */
-BaseType_t UartDevice_Open(UART_DEVICE *uart_device);
+BaseType_t UD_Open(UART_DEVICE *uart_device);
 
 /**
  * @brief 关闭串口设备
  * 
  * @param uart_device 串口设备
  */
-void UartDevice_Close(UART_DEVICE *uart_device);
+void UD_Close(UART_DEVICE *uart_device);
 
 /**
  * @brief 向串口设备写入字符串（不需要发送缓冲区，但需保证传入的字符串在发送完毕前不被修改）
@@ -101,7 +101,7 @@ void UartDevice_Close(UART_DEVICE *uart_device);
  * @param timeout 当串口被占用时，最大等待时间
  * @return BaseType_t 成功：pdPASS；失败：pdFAIL
  */
-BaseType_t UartDevice_WriteStr(UART_DEVICE *uart_device, const char *str, uint16_t length, uint32_t timeout);
+BaseType_t UD_WriteStr(UART_DEVICE *uart_device, const char *str, uint16_t length, uint32_t timeout);
 
 /**
  * @brief 以复制方式向串口设备写入字符串（需要发送缓冲区，会将传入的字符串复制到发送缓冲区，然后再发送）
@@ -112,7 +112,7 @@ BaseType_t UartDevice_WriteStr(UART_DEVICE *uart_device, const char *str, uint16
  * @param timeout 当串口被占用时，最大等待时间
  * @return BaseType_t 成功：pdPASS；失败：pdFAIL
  */
-BaseType_t UartDevice_WriteStrCopy(UART_DEVICE *uart_device, const char *str, uint16_t length, uint32_t timeout);
+BaseType_t UD_WriteStrCopy(UART_DEVICE *uart_device, const char *str, uint16_t length, uint32_t timeout);
 
 /**
  * @brief 向串口设备写入单个字符
@@ -122,14 +122,14 @@ BaseType_t UartDevice_WriteStrCopy(UART_DEVICE *uart_device, const char *str, ui
  * @param timeout 当串口被占用时，最大等待时间
  * @return BaseType_t 成功：pdPASS；失败：pdFAIL
  */
-BaseType_t UartDevice_WriteChar(UART_DEVICE *uart_device, char cha, uint32_t timeout);
+BaseType_t UD_WriteChar(UART_DEVICE *uart_device, char cha, uint32_t timeout);
 
 /**
  * @brief 等待串口设备发送完毕
  *
  * @param huart 串口句柄
  */
-void UartDevice_Sync(UART_DEVICE *uart_device);
+void UD_Sync(UART_DEVICE *uart_device);
 
 /**
  * @brief 读取串口设备
@@ -139,33 +139,33 @@ void UartDevice_Sync(UART_DEVICE *uart_device);
  * @param timeout 最大等待时间
  * @return BaseType_t 
  */
-BaseType_t UartDevice_Read(UART_DEVICE *uart_device,void *const read_buffer,uint32_t timeout);
+BaseType_t UD_Read(UART_DEVICE *uart_device,void *const read_buffer,uint32_t timeout);
 
 /**
  * @brief 请在HAL_UART_TxCpltCallback()中调用此函数
  * 
  * @param huart 串口句柄
  */
-void UartDevice_TxCpltCallback(UART_HandleTypeDef *huart);
+void UD_TxCpltCallback(UART_HandleTypeDef *huart);
 
 /**
  * @brief 请在HAL_UART_RxCpltCallback()中调用此函数
  * 
  * @param huart 串口句柄
  */
-void UartDevice_RxCpltCallback(UART_HandleTypeDef *huart);
+void UD_RxCpltCallback(UART_HandleTypeDef *huart);
 
 /**
- * @brief 使用 UartDevice 的 printf ，比普通的更高效且线程安全。注意需要先设置使用哪个 UartDevice
+ * @brief 使用 UartDevice 的 printf ，比普通的更高效且线程安全。注意需要先设置使用哪个 UD
  * 
  * @param format 
  * @param ... 
  */
-BaseType_t UartDevice_printf(const char *format, ...);
+BaseType_t UD_printf(const char *format, ...);
 
 /**
- * @brief 设置 UartDevice_printf 使用的 UartDevice
+ * @brief 设置 UD_printf 使用的 UartDevice
  * 
  * @param uart_device 
  */
-void UartDevice_SetPrintfDevice(UART_DEVICE *uart_device);
+void UD_SetPrintfDevice(UART_DEVICE *uart_device);
