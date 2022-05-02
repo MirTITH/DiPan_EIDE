@@ -156,7 +156,7 @@ void UD_TxCpltCallback(UART_HandleTypeDef *huart);
 void UD_RxCpltCallback(UART_HandleTypeDef *huart);
 
 /**
- * @brief 使用 UartDevice 的 printf ，比普通的更高效且线程安全。注意需要先设置使用哪个 UD
+ * @brief 使用 UartDevice 的 printf ，比普通的更高效且线程安全。需要先设置使用哪个 UartDevice ，并且 txbuff 的长度要合理，否则会截断
  * 
  * @param format 
  * @param ... 

@@ -11,6 +11,7 @@
 
 #include "CLI_custom_command.h"
 #include "ADS1256.h"
+#include "uart_device.h"
 
 /**
  * @brief 自定义命令在这里注册
@@ -44,14 +45,15 @@ BaseType_t F_Set_CLI_test_var(char *pcWriteBuffer, size_t xWriteBufferLen, const
 
 	if (pcParameter == NULL) // 说明没有带参数
 	{
-		sprintf(pcWriteBuffer, "CLI_test_var == %g", CLI_test_var);
-		// sprintf(pcWriteBuffer, "CLI_test_var == %.15lg", CLI_test_var); //double 型数据用这行更好
+		UD_printf("CLI_test_var == %g", CLI_test_var);
+		UD_printf("CLI_test_var == %.15lg", CLI_test_var); //double 型数据用这行更好
 	}
 	else
 	{
 		CLI_test_var = atof(pcParameter);
-		sprintf(pcWriteBuffer, "Set CLI_test_var = %g", CLI_test_var);
-		// sprintf(pcWriteBuffer, "Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
+
+		UD_printf("Set CLI_test_var = %g", CLI_test_var);
+		UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
 	}
 
 	return pdFALSE; // 结束执行
@@ -64,7 +66,7 @@ BaseType_t F_kamimadoka(char *pcWriteBuffer, size_t xWriteBufferLen, const char 
 	const uint16_t length = strlen(poem);
 	static uint16_t i = 0;
 
-	sprintf(pcWriteBuffer, "%c", poem[i++]);//输出一个字符，然后 i++
+	UD_printf("%c", poem[i++]);//输出一个字符，然后 i++
 
 	osDelay(50);
 
@@ -80,28 +82,26 @@ BaseType_t F_kamimadoka(char *pcWriteBuffer, size_t xWriteBufferLen, const char 
 BaseType_t F_ads_read_reg(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
 {
 	ADS1256_REG ads1256_reg;
-	int spf_return = 0;
 	ads1256_reg = ADS1256_RREG_All();
-	spf_return = sprintf(pcWriteBuffer+=spf_return, "STATUS: %2X\n", ads1256_reg.STATUS);
-	spf_return = sprintf(pcWriteBuffer+=spf_return, "MUX:    %2X\n", ads1256_reg.MUX);
-	spf_return = sprintf(pcWriteBuffer+=spf_return, "ADCON:  %2X\n", ads1256_reg.ADCON);
-	spf_return = sprintf(pcWriteBuffer+=spf_return, "DRATE:  %2X\n", ads1256_reg.DRATE);
-	spf_return = sprintf(pcWriteBuffer+=spf_return, "IO:     %2X\n", ads1256_reg.IO);
+	UD_printf("STATUS: %2X\n", ads1256_reg.STATUS);
+	UD_printf("MUX:    %2X\n", ads1256_reg.MUX);
+	UD_printf("ADCON:  %2X\n", ads1256_reg.ADCON);
+	UD_printf("DRATE:  %2X\n", ads1256_reg.DRATE);
+	UD_printf("IO:     %2X\n", ads1256_reg.IO);
 	return pdFALSE; // 结束执行
 }
 
 extern int ads_read_data_sw;
 BaseType_t F_ads_read_data_sw(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
 {
-	int spf_return = 0;
 	if (ads_read_data_sw == 0)
 	{
-		spf_return = sprintf(pcWriteBuffer+=spf_return, "Set ads_read_data_sw = 1\n");
+		UD_printf("Set ads_read_data_sw = 1\n");
 		ads_read_data_sw = 1;
 	}
 	else
 	{
-		spf_return = sprintf(pcWriteBuffer+=spf_return, "Set ads_read_data_sw = 0\n");
+		UD_printf("Set ads_read_data_sw = 0\n");
 		ads_read_data_sw = 0;
 	}
 

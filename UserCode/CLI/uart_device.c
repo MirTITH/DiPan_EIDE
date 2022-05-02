@@ -302,6 +302,9 @@ BaseType_t UD_WriteStr(UART_DEVICE *uart_device, const char *str, uint16_t lengt
 	if (uart_device == NULL || uart_device->is_open == pdFALSE)
 		return pdFAIL;
 
+	if (length == 0)
+		return pdPASS;
+
 	if (xSemaphoreTake(uart_device->tx_sem, timeout) == pdPASS)
 	{
 		uart_device->TxFunc(uart_device->huart, str, length);
@@ -315,6 +318,9 @@ BaseType_t UD_WriteStrCopy(UART_DEVICE *uart_device, const char *str, uint16_t l
 {
 	if (uart_device == NULL || uart_device->is_open == pdFALSE)
 		return pdFAIL;
+
+	if (length == 0)
+		return pdPASS;
 
 	if (xSemaphoreTake(uart_device->tx_sem, timeout) == pdPASS)
 	{
