@@ -6,3 +6,5 @@ MDK-ARM/*
 !MDK-ARM/*.uvoptx
 !MDK-ARM/*.uvprojx
 !MDK-ARM/startup_stm32f407xx.s
+build/*
+.eide/log/*
