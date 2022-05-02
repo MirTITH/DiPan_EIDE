@@ -11,10 +11,40 @@
 
 #include "uart_device.h"
 #include <string.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 #define MAX_UartDevice_Num 4
 
 static UART_DEVICE *uart_devices[MAX_UartDevice_Num] = {NULL};
+
+UART_DEVICE *printf_uart_device = NULL;
+
+void UartDevice_SetPrintfDevice(UART_DEVICE *uart_device)
+{
+	printf_uart_device = uart_device;
+}
+
+BaseType_t UartDevice_printf(const char *format, ...)
+{
+	if (printf_uart_device == NULL || printf_uart_device->is_open == pdFALSE)
+		return pdFAIL;
+
+	if (xSemaphoreTake(printf_uart_device->tx_sem, portMAX_DELAY) == pdPASS)
+	{
+		va_list args_list;
+		va_start(args_list, format);
+		vsnprintf((char *)printf_uart_device->tx_buffer, printf_uart_device->tx_buffer_length, format, args_list);
+		va_end(args_list);
+
+		printf_uart_device->tx_buffer[printf_uart_device->tx_buffer_length - 1] = '\0';
+		uint32_t str_len = strlen(printf_uart_device->tx_buffer);
+
+		printf_uart_device->TxFunc(printf_uart_device->huart, printf_uart_device->tx_buffer, str_len);
+		return pdPASS;
+	}
+	return pdFAIL;
+}
 
 BaseType_t UartDevice_Receive_DMA(UART_HandleTypeDef *huart, char *pData, uint16_t size)
 {

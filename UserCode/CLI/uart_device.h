@@ -154,3 +154,18 @@ void UartDevice_TxCpltCallback(UART_HandleTypeDef *huart);
  * @param huart 串口句柄
  */
 void UartDevice_RxCpltCallback(UART_HandleTypeDef *huart);
+
+/**
+ * @brief 使用 UartDevice 的 printf ，比普通的更高效且线程安全。注意需要先设置使用哪个 UartDevice
+ * 
+ * @param format 
+ * @param ... 
+ */
+BaseType_t UartDevice_printf(const char *format, ...);
+
+/**
+ * @brief 设置 UartDevice_printf 使用的 UartDevice
+ * 
+ * @param uart_device 
+ */
+void UartDevice_SetPrintfDevice(UART_DEVICE *uart_device);
