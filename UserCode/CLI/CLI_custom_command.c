@@ -93,12 +93,15 @@ BaseType_t F_ads_read_reg(char *pcWriteBuffer, size_t xWriteBufferLen, const cha
 extern int ads_read_data_sw;
 BaseType_t F_ads_read_data_sw(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
 {
+	int spf_return = 0;
 	if (ads_read_data_sw == 0)
 	{
+		spf_return = sprintf(pcWriteBuffer+=spf_return, "Set ads_read_data_sw = 1\n");
 		ads_read_data_sw = 1;
 	}
 	else
 	{
+		spf_return = sprintf(pcWriteBuffer+=spf_return, "Set ads_read_data_sw = 0\n");
 		ads_read_data_sw = 0;
 	}
 
