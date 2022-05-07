@@ -46,14 +46,14 @@ BaseType_t F_Set_CLI_test_var(char *pcWriteBuffer, size_t xWriteBufferLen, const
 	if (pcParameter == NULL) // 说明没有带参数
 	{
 		UD_printf("CLI_test_var == %g", CLI_test_var);
-		UD_printf("CLI_test_var == %.15lg", CLI_test_var); //double 型数据用这行更好
+		// UD_printf("CLI_test_var == %.15lg", CLI_test_var); //double 型数据用这行更好
 	}
 	else
 	{
 		CLI_test_var = atof(pcParameter);
 
 		UD_printf("Set CLI_test_var = %g", CLI_test_var);
-		UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
+		// UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
 	}
 
 	return pdFALSE; // 结束执行
