@@ -14,27 +14,6 @@
 
 const double PI = 3.141592653589793238462643383279;
 
-typedef struct WHEEL_CTRL
-{
-	double forward_v;	// 前进轮期望速度 (m/s)
-	double forward_pos; // 前进轮期望位置 (m)
-	double rot_v;		// 旋转期望角速度 (rad/s)
-	double rot_pos;		// 旋转期望位置 (与 x 轴平行为0，逆时针为正，一圈是 2 PI)
-} Wheel_Ctrl;
-
-/**
- *
- * 舵轮对应位置
- * 0  1
- * 2  3
- */
-typedef struct WHEEL
-{
-	double o_pos_x; // 舵轮相对控制中心的 x 位置 (m)
-	double o_pos_y; // 舵轮相对控制中心的 y 位置 (m)
-	Wheel_Ctrl wheel_exp;
-	Wheel_Ctrl wheel_now;
-} Wheel;
 
 Wheel wheel[Wheel_Num] = {0};
 
@@ -54,14 +33,14 @@ void Kine_Read_All_Wheel_Data(void)
 void Kine_Init(double distance_x, double distance_y, double o_offset_x, double o_offset_y)
 {
 	// 计算各舵轮相对控制中心的位置
-	wheel[0].o_pos_x = -distance_x / 2 - o_offset_x;
+	wheel[0].o_pos_x = -(distance_x / 2 - o_offset_x);
 	wheel[0].o_pos_y = distance_y / 2 - o_offset_y;
 	wheel[1].o_pos_x = distance_x / 2 - o_offset_x;
 	wheel[1].o_pos_y = distance_y / 2 - o_offset_y;
-	wheel[2].o_pos_x = -distance_x / 2 - o_offset_x;
-	wheel[2].o_pos_y = -distance_y / 2 - o_offset_y;
+	wheel[2].o_pos_x = -(distance_x / 2 - o_offset_x);
+	wheel[2].o_pos_y = -(distance_y / 2 - o_offset_y);
 	wheel[3].o_pos_x = distance_x / 2 - o_offset_x;
-	wheel[3].o_pos_y = -distance_y / 2 - o_offset_y;
+	wheel[3].o_pos_y = -(distance_y / 2 - o_offset_y);
 
 	Kine_Read_All_Wheel_Data();
 }
@@ -83,60 +62,97 @@ void Kine_Wheel_Calc(Wheel *wheel, double wheel_vx, double wheel_vy)
 		double speed = sqrt(pow(wheel_vx, 2) + pow(wheel_vy, 2)); // 速度
 		double angle = atan(wheel_vy / wheel_vx);				  // 角度，弧度制
 
-		// 角度映射到 [0, 2*PI)
-		if (wheel_vx >= 0 && wheel_vy >= 0)
+		// 角度映射到 [0, 2*PI)，且尽量保证角度变化最小
+		if (wheel_vx > 0 && wheel_vy > 0)
 		{
 			angle = angle;
+			if(wheel->wheel_now.rot_pos-angle>(PI/2) && wheel->wheel_now.rot_pos-angle<(3*PI/2))
+			{
+				angle += PI;
+				speed = -speed;
+			}
 		}
-		else if (wheel_vx < 0 && wheel_vy >= 0)
+		else if (wheel_vx < 0 && wheel_vy > 0)
 		{
 			angle = PI + angle;
+			if(wheel->wheel_now.rot_pos-angle>(PI/2) || wheel->wheel_now.rot_pos-angle<(-PI/2))
+			{
+				angle += PI;
+				speed = -speed;
+			}
 		}
 		else if (wheel_vx < 0 && wheel_vy < 0)
 		{
 			angle = PI + angle;
+			if(wheel->wheel_now.rot_pos-angle>(PI/2) || wheel->wheel_now.rot_pos-angle<(-PI/2))
+			{
+				angle -= PI;
+				speed = -speed;
+			}
 		}
-		else
+		else if (wheel_vx > 0 && wheel_vy < 0)
 		{
-			angle = 2 * PI + angle;
+			angle = 2*PI + angle;
+			if(angle-wheel->wheel_now.rot_pos>(PI/2) && angle-wheel->wheel_now.rot_pos<(3*PI/2))
+			{
+				angle -= PI;
+				speed = -speed;
+			}
 		}
 
-		// 旋转方向判定
-		double angle_diff = fmod(angle - wheel->wheel_now.rot_pos, 2 * PI);
+		else if(wheel_vx == 0 && wheel_vy == 0)
+		{
+		  angle = wheel->wheel_now.rot_pos;
+		}
 
-		if (angle_diff <= -1.5 * PI)
+		else if(wheel_vx == 0 && wheel_vy > 0)
 		{
-			angle_diff += 2 * PI;
+		  angle = PI/2;
+		  if (wheel->wheel_now.rot_pos > PI)
+		  {
+			  angle += PI;
+			  speed = -speed;
+		  }
 		}
-		else if (angle_diff <= -0.5 * PI)
+		else if(wheel_vx == 0 && wheel_vy < 0)
 		{
-			angle_diff += PI;
-			speed = -speed;
+		  angle = 3*PI/2;
+		  if (wheel->wheel_now.rot_pos < PI)
+		  {
+			  angle -= PI;
+			  speed = -speed;
+		  }
 		}
-		else if (angle_diff <= 0.5 * PI)
+		else if(wheel_vx > 0 && wheel_vy == 0)
 		{
-			// 不用转换
+		  angle = 0;
+		  if (wheel->wheel_now.rot_pos > (PI/2) && wheel->wheel_now.rot_pos < (3*PI/2))
+		  {
+			  angle += PI;
+			  speed = -speed;
+		  }
 		}
-		else if (angle_diff <= 1.5 * PI)
+		else if(wheel_vx < 0 && wheel_vy == 0)
 		{
-			angle_diff -= PI;
-			speed = -speed;
+		  angle = PI;
+		  if(wheel->wheel_now.rot_pos < (PI/2) || wheel->wheel_now.rot_pos > (3*PI/2))
+		  {
+			  angle -= PI;
+			  speed = -speed;
+		  }
 		}
-		else
-		{
-			angle_diff -= 2 * PI;
-		}
+		
 
 		// 最终写入
 		wheel->wheel_exp.forward_v = speed;
-		wheel->wheel_exp.forward_pos += angle_diff;
+		wheel->wheel_exp.rot_pos = angle;
 	}
 }
 
 void Kine_SetSpeed(double robot_vx, double robot_vy, double robot_rot)
 {
 	double wheel_vx, wheel_vy;
-	for (int i = 0; i < Wheel_Num; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		wheel_vx = robot_vx - wheel[i].o_pos_y * robot_rot;
 		wheel_vy = robot_vy + wheel[i].o_pos_x * robot_rot;
