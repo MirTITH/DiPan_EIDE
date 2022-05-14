@@ -44,8 +44,8 @@ int ads_read_data_sw = 1; // ADS打印开关
 
 void StartDefaultTask(void const *argument)
 {
-	CLI_Init(&huart3);
-	UD_SetPrintfDevice(UD_Find(&huart3));
+	// CLI_Init(&huart3);
+	// UD_SetPrintfDevice(UD_Find(&huart3));
 
 	osDelay(500);
 
@@ -55,6 +55,7 @@ void StartDefaultTask(void const *argument)
 	hDJI[5].motorType = M2006;
 	hDJI[6].motorType = M2006;
 	hDJI[7].motorType = M2006;
+	DJI_Init();
 
 	// vesc初始化
 	Kine_Init(0.8, 0.8, 0.14, 0.14);
@@ -148,6 +149,6 @@ void StartDefaultTask(void const *argument)
 		// 	ADS1256_UpdateDiffData();
 		// }
 
-		osDelay(10);
+		osDelay(5);
 	}
 }

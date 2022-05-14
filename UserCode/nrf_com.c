@@ -23,10 +23,6 @@ void send()
 //接收单片机初始化
 void nrf_receive_init()
 {
-		for(int i=0;i<50;i++)
-	{
-		//Delay
-	}
     HAL_UART_Receive_DMA(&huart6,nrfReceive,BAG_LENGTH*2);
 }
 

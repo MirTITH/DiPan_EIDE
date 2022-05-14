@@ -13,6 +13,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include "nrf_com.h"
 
 #define MAX_UartDevice_Num 4
 
@@ -401,4 +402,9 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	UD_RxCpltCallback(huart);
+
+	if(huart->Instance == huart6.Instance)
+    {
+        nrf_decode();
+    }
 }

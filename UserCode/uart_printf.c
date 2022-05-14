@@ -22,9 +22,7 @@
 
 PUTCHAR_PROTOTYPE
 {
-	//具体哪个串口可以更改huart1为其它串口
 	while (HAL_UART_Transmit(&UART_Printf_Config_huart, (uint8_t *)&ch, 1, 0xffff) == HAL_BUSY);
-
 	return ch;
 }
 
