@@ -335,7 +335,7 @@ void can_get_command(CAN_RxHeaderTypeDef  *RxHeader,uint8_t rxbuf[], void *data)
 	switch(id)
 	{
 		case CAN_PACKET_STATUS:{
-			int idx=0;
+			int32_t idx=0;
 			MOTOR_PROPERTY * value = (MOTOR_PROPERTY *)data ;
 			value->controller_id   = RxHeader->ExtId ;
 			value->erpm					   = buffer_get_int32(rxbuf,&idx) ;
