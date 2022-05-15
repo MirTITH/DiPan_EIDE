@@ -38,14 +38,16 @@ float pos[4] = {0};
 float buffer[4] = {0};
 float rd[4] = {0};
 float erpm[4] = {0};
+float last_epos_offset[4] = {0};
+float epos_offset[4] = {0};
 VESC_t hvesc[4];
 
 int ads_read_data_sw = 1; // ADS打印开关
 
 void StartDefaultTask(void const *argument)
 {
-	// CLI_Init(&huart3);
-	// UD_SetPrintfDevice(UD_Find(&huart3));
+	CLI_Init(&huart3);
+	UD_SetPrintfDevice(UD_Find(&huart3));
 
 	osDelay(500);
 
@@ -114,7 +116,7 @@ void StartDefaultTask(void const *argument)
 			else if ((pos[i] - buffer[i]) > 1000)
 				rd[i]--; //反转一圈
 
-			positionServo(pos[i] + rd[i] * 1200, &hDJI[i + 4]);
+			positionServo(pos[i] + rd[i] * 1200 + epos_offset[i], &hDJI[i + 4]);
 		}
 
 		CanTransmit_DJI_5678(&hcan1,
@@ -149,6 +151,43 @@ void StartDefaultTask(void const *argument)
 		// 	ADS1256_UpdateDiffData();
 		// }
 
+		// UD_printf("%d %d %d %d\n", HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_9), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_10), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_11), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_12));
+
 		osDelay(5);
+	}
+}
+
+void UWheels_Hall_Callback(int id)
+{
+	epos_offset[id] = - pos[id];
+	// epos_offset[id] += PI / 6 * (600 / PI);
+	// switch (id)
+	// {
+	// case 1:
+	// 	break;
+	// default:
+	// 	break;
+	// }
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	switch (GPIO_Pin)
+	{
+	case GPIO_PIN_9:
+		UWheels_Hall_Callback(0);
+		break;
+	case GPIO_PIN_10:
+		UWheels_Hall_Callback(1);
+		break;
+	case GPIO_PIN_11:
+		UWheels_Hall_Callback(2);
+		break;
+	case GPIO_PIN_12:
+		UWheels_Hall_Callback(3);
+		break;
+	default:
+		// printf("EXTI %d\n", GPIO_Pin);
+		break;
 	}
 }
