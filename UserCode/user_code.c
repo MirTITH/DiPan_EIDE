@@ -185,7 +185,7 @@ void StartDefaultTask(void const *argument)
 void UWheels_Hall_Callback(int id)
 {
 	double target_angle = 0;
-	double now_angle = (pos[id] + rd[id] * 1200) / (2 * PI);
+	double now_angle = (pos[id] + rd[id] * 1200) * (2 * PI / 1200);
 	double delta_angle = 0;
 	last_epos_offset[id] = epos_offset[id];
 	switch (id)
@@ -207,8 +207,8 @@ void UWheels_Hall_Callback(int id)
 	}
 
 	epos_offset[id] = LoopSimplify(2 * PI, now_angle - target_angle);
-	// delta_angle = LoopSimplify(2 * PI, epos_offset[id] - last_epos_offset[id]);
-	// epos_offset[id] = last_epos_offset[id] + delta_angle;
+	delta_angle = LoopSimplify(2 * PI, epos_offset[id] - last_epos_offset[id]);
+	epos_offset[id] = last_epos_offset[id] + delta_angle;
 	printf("N %.1lf L %.1lf O %.1lf\n", now_angle * (180 / PI), last_epos_offset[id] * (180 / PI), epos_offset[id] * (180 / PI));
 	// epos_offset[id]  = 150 + rd[id]*1200 - pos[id];
 }
