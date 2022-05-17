@@ -19,6 +19,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include "ADS1256.h"
 #include "uart_device.h"
 #include "TITH_time.h"
+#include <math.h>
 
 #include "DJI.h"
 #include "wtr_can.h"
@@ -34,15 +35,39 @@ double robot_rot=0;
 
 int b = 0;
 
-float pos[4] = {0};
-float buffer[4] = {0};
-float rd[4] = {0};
-float erpm[4] = {0};
-float last_epos_offset[4] = {0};
-float epos_offset[4] = {0};
+double pos[4] = {0};
+double buffer[4] = {0};
+double rd[4] = {0};
+double erpm[4] = {0};
+double last_epos_offset[4] = {0};
+double epos_offset[4] = {0};
 VESC_t hvesc[4];
 
 int ads_read_data_sw = 1; // ADS打印开关
+
+/**
+ * @brief 循环变量化简
+ * 
+ * @param cycle 周期
+ * @param value 
+ * @return double 化简后的值，在[- T / 2, T / 2] 之间
+ */
+double LoopSimplify(double cycle, double value)
+{
+	double mod_value = fmod(value , cycle);
+
+	if (mod_value > cycle / 2)
+	{
+		mod_value -= cycle;
+	}
+
+	if (mod_value < -cycle / 2)
+	{
+		mod_value += cycle;
+	}
+
+	return mod_value;
+}
 
 void StartDefaultTask(void const *argument)
 {
@@ -116,7 +141,7 @@ void StartDefaultTask(void const *argument)
 			else if ((pos[i] - buffer[i]) > 1000)
 				rd[i]--; //反转一圈
 
-			positionServo(pos[i] + rd[i] * 1200 + epos_offset[i], &hDJI[i + 4]);
+			positionServo(pos[i] + rd[i]*1200 + epos_offset[i] * (1200 / (2 * PI)), &hDJI[i + 4]);
 		}
 
 		CanTransmit_DJI_5678(&hcan1,
@@ -150,7 +175,7 @@ void StartDefaultTask(void const *argument)
 		// {
 		// 	ADS1256_UpdateDiffData();
 		// }
-
+		// printf("aaa\n");
 		// UD_printf("%d %d %d %d\n", HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_9), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_10), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_11), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_12));
 
 		osDelay(5);
@@ -159,15 +184,33 @@ void StartDefaultTask(void const *argument)
 
 void UWheels_Hall_Callback(int id)
 {
-	epos_offset[id] = - pos[id];
-	// epos_offset[id] += PI / 6 * (600 / PI);
-	// switch (id)
-	// {
-	// case 1:
-	// 	break;
-	// default:
-	// 	break;
-	// }
+	double target_angle = 0;
+	double now_angle = (pos[id] + rd[id] * 1200) / (2 * PI);
+	double delta_angle = 0;
+	last_epos_offset[id] = epos_offset[id];
+	switch (id)
+	{
+	case 0:
+		target_angle = PI / 4;
+		break;
+	case 1:
+		target_angle = PI / 4;
+		break;
+	case 2:
+		target_angle = PI / 4;
+		break;
+	case 3:
+		target_angle = PI / 4;
+		break;
+	default:
+		break;
+	}
+
+	epos_offset[id] = LoopSimplify(2 * PI, now_angle - target_angle);
+	delta_angle = LoopSimplify(2 * PI, epos_offset[id] - last_epos_offset[id]);
+	epos_offset[id] = last_epos_offset[id] + delta_angle;
+	printf("N %.1lf L %.1lf O %.1lf\n", now_angle * (180 / PI), epos_offset[id] * (180 / PI), last_epos_offset[id] * (180 / PI));
+	// epos_offset[id]  = 150 + rd[id]*1200 - pos[id];
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)

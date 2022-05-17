@@ -15,7 +15,7 @@ void DJI_Init(){
 
         hDJI[i].posPID.KP = 100.0f;
         hDJI[i].posPID.KI = 0;
-        hDJI[i].posPID.KD = 5;
+        hDJI[i].posPID.KD = 0;
         hDJI[i].posPID.outputMax = 15000;
 			  hDJI[i].posPID.outputMin = 0;   // 
         

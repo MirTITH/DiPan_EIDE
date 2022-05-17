@@ -12,11 +12,11 @@
 #include "uart_printf.h"
 
 /* 重定向printf */
-#ifdef __GNUC__
-	#define PUTCHAR_PROTOTYPE  int __io_putchar(int ch)
-#else
+// #ifdef __GNUC__
+// 	#define PUTCHAR_PROTOTYPE  int __io_putchar(int ch)
+// #else
 	#define PUTCHAR_PROTOTYPE  int fputc(int ch, FILE *stream)
-#endif
+// #endif
 
 #ifndef UART_Printf_Config_Use_DMA
 
