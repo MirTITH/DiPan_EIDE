@@ -19,7 +19,8 @@
  */
 void vRegisterCustomCLICommands(void)
 {
-	CLI_New_Command(testvar, setting CLI_test_var, F_Set_CLI_test_var, -1);
+	CLI_New_Command(testvar, set CLI_test_var, F_Set_CLI_test_var, -1);
+	CLI_New_Command(eposo, set epos_offset, F_Set_epos_offset, -1);
 	CLI_New_Command(kamimadoka, kami.im, F_kamimadoka, 0);
 	CLI_New_Command(ads_read_reg, Read all registers of ADS1256, F_ads_read_reg, 0);
 	CLI_New_Command(ads_read_data_sw, ADS1256 read data switch, F_ads_read_data_sw, 0);
@@ -53,6 +54,29 @@ BaseType_t F_Set_CLI_test_var(char *pcWriteBuffer, size_t xWriteBufferLen, const
 		CLI_test_var = atof(pcParameter);
 
 		UD_printf("Set CLI_test_var = %g", CLI_test_var);
+		// UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
+	}
+
+	return pdFALSE; // 结束执行
+}
+
+extern double epos_offset[4];
+BaseType_t F_Set_epos_offset(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+{
+	BaseType_t xParameterStringLength;
+	const char *pcParameter;
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
+
+	if (pcParameter == NULL) // 说明没有带参数
+	{
+		UD_printf("epos_offset[2] == %g", epos_offset[2] * (180 / 3.141592653589793238462643383279));
+		// UD_printf("CLI_test_var == %.15lg", CLI_test_var); //double 型数据用这行更好
+	}
+	else
+	{
+		epos_offset[2] = atof(pcParameter) / (180 / 3.141592653589793238462643383279);
+
+		UD_printf("Set epos_offset[2] = %g", epos_offset[2]);
 		// UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
 	}
 

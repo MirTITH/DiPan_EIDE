@@ -207,9 +207,9 @@ void UWheels_Hall_Callback(int id)
 	}
 
 	epos_offset[id] = LoopSimplify(2 * PI, now_angle - target_angle);
-	delta_angle = LoopSimplify(2 * PI, epos_offset[id] - last_epos_offset[id]);
-	epos_offset[id] = last_epos_offset[id] + delta_angle;
-	printf("N %.1lf L %.1lf O %.1lf\n", now_angle * (180 / PI), epos_offset[id] * (180 / PI), last_epos_offset[id] * (180 / PI));
+	// delta_angle = LoopSimplify(2 * PI, epos_offset[id] - last_epos_offset[id]);
+	// epos_offset[id] = last_epos_offset[id] + delta_angle;
+	printf("N %.1lf L %.1lf O %.1lf\n", now_angle * (180 / PI), last_epos_offset[id] * (180 / PI), epos_offset[id] * (180 / PI));
 	// epos_offset[id]  = 150 + rd[id]*1200 - pos[id];
 }
 
