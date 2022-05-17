@@ -39,7 +39,6 @@ double pos[4] = {0};
 double buffer[4] = {0};
 double rd[4] = {0};
 double erpm[4] = {0};
-double last_epos_offset[4] = {0};
 double epos_offset[4] = {0};
 VESC_t hvesc[4];
 
@@ -184,33 +183,28 @@ void StartDefaultTask(void const *argument)
 
 void UWheels_Hall_Callback(int id)
 {
-	double target_angle = 0;
-	double now_angle = (pos[id] + rd[id] * 1200) * (2 * PI / 1200);
-	double delta_angle = 0;
-	last_epos_offset[id] = epos_offset[id];
+	double hall_angle = 0;
+	double exp_angle = (pos[id] + rd[id]*1200) * (2 * PI / 1200);
 	switch (id)
 	{
 	case 0:
-		target_angle = PI / 4;
+		hall_angle = PI / 4;
 		break;
 	case 1:
-		target_angle = PI / 4;
+		hall_angle = PI / 4;
 		break;
 	case 2:
-		target_angle = PI / 4;
+		hall_angle = PI / 4;
 		break;
 	case 3:
-		target_angle = PI / 4;
+		hall_angle = PI / 4;
 		break;
 	default:
 		break;
 	}
 
-	epos_offset[id] = LoopSimplify(2 * PI, now_angle - target_angle);
-	delta_angle = LoopSimplify(2 * PI, epos_offset[id] - last_epos_offset[id]);
-	epos_offset[id] = last_epos_offset[id] + delta_angle;
-	printf("N %.1lf L %.1lf O %.1lf\n", now_angle * (180 / PI), last_epos_offset[id] * (180 / PI), epos_offset[id] * (180 / PI));
-	// epos_offset[id]  = 150 + rd[id]*1200 - pos[id];
+	epos_offset[id] -= LoopSimplify(2 * PI, hall_angle - exp_angle);
+	// printf("N %.1lf D %.1lf\n", exp_angle * (180 / PI), -epos_offset[id] * (180 / PI));
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
