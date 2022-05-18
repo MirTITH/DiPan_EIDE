@@ -68,6 +68,22 @@ double LoopSimplify(double cycle, double value)
 	return mod_value;
 }
 
+/**
+ * @brief 
+ * 
+ * @param cycle 
+ * @param value 
+ * @return double 化简后的值，在[0, T] 之间
+ */
+double LoopSimplify_Positive(double cycle, double value)
+{
+	double mod_value = LoopSimplify(cycle,value);
+
+	if(mod_value<0) mod_value += 600;
+
+	return mod_value;
+}
+
 void StartDefaultTask(void const *argument)
 {
 	CLI_Init(&huart3);
@@ -108,8 +124,13 @@ void StartDefaultTask(void const *argument)
 	{
 		// uint32_t tick1;
 		// uint32_t tick2;
-
+		// tick1 = get_time_us();
 		// Kine Read Wheel Data
+		// for (int i = 0; i < Wheel_Num; i++)
+		// {
+		// 	wheel[i].wheel_now.rot_pos = LoopSimplify_Positive(1200,hDJI[i].AxisData.AxisAngle_inDegree) * PI / 600;
+		// 	buffer[i] = LoopSimplify_Positive(1200,hDJI[i].AxisData.AxisAngle_inDegree);
+		// }
 		for (int i = 0; i < Wheel_Num; i++)
 		{
 			wheel[i].wheel_now.rot_pos = pos[i] * PI / 600;
@@ -119,6 +140,19 @@ void StartDefaultTask(void const *argument)
 		//运动解算
 		robot_vx = ((float)(2048 - Leftx)) / 500;
 		robot_vy = ((float)(2048 - Lefty)) / 500;
+
+		double v = sqrt(robot_vx * robot_vx + robot_vy * robot_vy);
+		if(v > 2)
+		{
+			robot_vx *= (v - 2) / v;
+			robot_vy *= (v - 2) / v;
+		}
+		else
+		{
+			robot_vx = 0;
+			robot_vy = 0;
+		}
+
 		robot_rot = ((float)(Rightx - 2048)) / 500;
 		Kine_SetSpeed(robot_vx, robot_vy, robot_rot);
 
@@ -142,6 +176,7 @@ void StartDefaultTask(void const *argument)
 
 			positionServo(pos[i] + rd[i]*1200 + epos_offset[i] * (1200 / (2 * PI)), &hDJI[i + 4]);
 		}
+			// UD_printf("%4.0lf\n", pos[0] + rd[0]*1200);
 
 		CanTransmit_DJI_5678(&hcan1,
 							 hDJI[4].speedPID.output,
@@ -154,7 +189,7 @@ void StartDefaultTask(void const *argument)
 		VESC_CAN_SET_ERPM(&hvesc[1], erpm[1]);
 		VESC_CAN_SET_ERPM(&hvesc[2], erpm[2]);
 		VESC_CAN_SET_ERPM(&hvesc[3], erpm[3]);
-
+		
 		// if (ads_read_data_sw)
 		// {
 		// 	tick1 = get_time_us();
@@ -177,7 +212,7 @@ void StartDefaultTask(void const *argument)
 		// printf("aaa\n");
 		// UD_printf("%d %d %d %d\n", HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_9), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_10), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_11), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_12));
 
-		osDelay(5);
+		osDelay(2);
 	}
 }
 
@@ -209,22 +244,22 @@ void UWheels_Hall_Callback(int id)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	switch (GPIO_Pin)
-	{
-	case GPIO_PIN_9:
-		UWheels_Hall_Callback(0);
-		break;
-	case GPIO_PIN_10:
-		UWheels_Hall_Callback(1);
-		break;
-	case GPIO_PIN_11:
-		UWheels_Hall_Callback(2);
-		break;
-	case GPIO_PIN_12:
-		UWheels_Hall_Callback(3);
-		break;
-	default:
-		// printf("EXTI %d\n", GPIO_Pin);
-		break;
-	}
+	// switch (GPIO_Pin)
+	// {
+	// case GPIO_PIN_9:
+	// 	UWheels_Hall_Callback(0);
+	// 	break;
+	// case GPIO_PIN_10:
+	// 	UWheels_Hall_Callback(1);
+	// 	break;
+	// case GPIO_PIN_11:
+	// 	UWheels_Hall_Callback(2);
+	// 	break;
+	// case GPIO_PIN_12:
+	// 	UWheels_Hall_Callback(3);
+	// 	break;
+	// default:
+	// 	// printf("EXTI %d\n", GPIO_Pin);
+	// 	break;
+	// }
 }

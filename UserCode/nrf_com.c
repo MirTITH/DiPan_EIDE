@@ -4,7 +4,7 @@
 
 nrfBag_t nrfDataBag;
 uint8_t nrfReceive[BAG_LENGTH*2];
-int Leftx, Lefty, Rightx, Righty; 
+int Leftx = 2048, Lefty = 2048, Rightx = 2048, Righty = 2048; 
 uint8_t button_A,button_B,button_C,button_D,button_E,button_F,button_G,button_H;
 
 //发送单片机初始化
