@@ -238,7 +238,9 @@ void UWheels_Hall_Callback(int id)
 		break;
 	}
 
-	epos_offset[id] -= LoopSimplify(2 * PI, hall_angle - exp_angle);
+	epos_offset[id] = exp_angle - hDJI[id + 4].posPID.cur_error - hall_angle;
+
+	// epos_offset[id] -= LoopSimplify(2 * PI, hall_angle - exp_angle);
 	// printf("N %.1lf D %.1lf\n", exp_angle * (180 / PI), -epos_offset[id] * (180 / PI));
 }
 
