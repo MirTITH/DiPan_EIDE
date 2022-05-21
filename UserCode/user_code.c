@@ -238,30 +238,30 @@ void UWheels_Hall_Callback(int id)
 		break;
 	}
 
-	epos_offset[id] = exp_angle - hDJI[id + 4].posPID.cur_error - hall_angle;
+	// epos_offset[id] = exp_angle - hDJI[id + 4].posPID.cur_error * 2 * PI / 1200  - hall_angle;
 
-	// epos_offset[id] -= LoopSimplify(2 * PI, hall_angle - exp_angle);
+	epos_offset[id] -= LoopSimplify(2 * PI, hall_angle - exp_angle + hDJI[id + 4].posPID.cur_error * 2 * PI / 1200);
 	// printf("N %.1lf D %.1lf\n", exp_angle * (180 / PI), -epos_offset[id] * (180 / PI));
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	// switch (GPIO_Pin)
-	// {
-	// case GPIO_PIN_9:
-	// 	UWheels_Hall_Callback(0);
-	// 	break;
-	// case GPIO_PIN_10:
-	// 	UWheels_Hall_Callback(1);
-	// 	break;
-	// case GPIO_PIN_11:
-	// 	UWheels_Hall_Callback(2);
-	// 	break;
-	// case GPIO_PIN_12:
-	// 	UWheels_Hall_Callback(3);
-	// 	break;
-	// default:
-	// 	// printf("EXTI %d\n", GPIO_Pin);
-	// 	break;
-	// }
+	switch (GPIO_Pin)
+	{
+	case GPIO_PIN_9:
+		UWheels_Hall_Callback(0);
+		break;
+	case GPIO_PIN_10:
+		UWheels_Hall_Callback(1);
+		break;
+	case GPIO_PIN_11:
+		UWheels_Hall_Callback(2);
+		break;
+	case GPIO_PIN_12:
+		UWheels_Hall_Callback(3);
+		break;
+	default:
+		// printf("EXTI %d\n", GPIO_Pin);
+		break;
+	}
 }
