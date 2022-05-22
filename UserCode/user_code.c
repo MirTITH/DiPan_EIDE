@@ -133,8 +133,8 @@ void StartDefaultTask(void const *argument)
 	hDJI[7].motorType = M2006;
 	DJI_Init();
 
-	hDJI[0].speedPID.outputMax = 400;
-	hDJI[2].speedPID.outputMax = 400;
+	hDJI[0].speedPID.outputMax = 8000;
+	hDJI[2].speedPID.outputMax = 6000;
 
 	// vesc初始化
 	Kine_Init(0.8, 0.8, 0.14, 0.14);
@@ -207,14 +207,14 @@ void StartDefaultTask(void const *argument)
 			if (button_E)
 			{
 				// 抓
-				speed_zhuazi = 100;
+				speed_zhuazi = 400;
 				// UD_printf("catch\n");
 			}
 
 			if(button_F)
 			{
 				// 放
-				speed_zhuazi = -100;
+				speed_zhuazi = -400;
 				// UD_printf("release\n");
 			}
 			// UD_printf("Stop\n");
@@ -264,6 +264,8 @@ void StartDefaultTask(void const *argument)
                              hDJI[2].speedPID.output,
                              hDJI[3].speedPID.output);
 
+		osDelay(3);
+
 		CanTransmit_DJI_5678(&hcan1,
 							 hDJI[4].speedPID.output,
 							 hDJI[5].speedPID.output,
@@ -298,7 +300,7 @@ void StartDefaultTask(void const *argument)
 		// printf("aaa\n");
 		// UD_printf("%d %d %d %d\n", HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_9), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_10), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_11), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_12));
 
-		osDelay(2);
+		osDelay(3);
 	}
 }
 
