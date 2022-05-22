@@ -43,14 +43,15 @@ double epos_offset[4] = {0};
 VESC_t hvesc[4];
 
 double pos_toggle = 0;
-double pos_zhuazi = 0;
+// double pos_zhuazi = 0;
 // double pos_shengjiang = 0;
 double speed_shengjiang = 0;
+double speed_zhuazi = 0;
 
 int ads_read_data_sw = 1; // ADS打印开关
 
 /**
- * @brief 死去限制
+ * @brief 死区限制
  * 
  * @param dead_band 应为正值
  * @param value
@@ -122,7 +123,7 @@ void StartDefaultTask(void const *argument)
 
 	//大疆电机初始化
 	CANFilterInit(&hcan1);
-	hDJI[0].motorType = M3508;
+	hDJI[0].motorType = M3508; // 爪子
 	hDJI[1].motorType = M2006;
 	hDJI[2].motorType = M3508; // 升降
 	
@@ -132,7 +133,8 @@ void StartDefaultTask(void const *argument)
 	hDJI[7].motorType = M2006;
 	DJI_Init();
 
-	hDJI[2].posPID.outputMax = 400;
+	hDJI[0].speedPID.outputMax = 400;
+	hDJI[2].speedPID.outputMax = 400;
 
 	// vesc初始化
 	Kine_Init(0.8, 0.8, 0.14, 0.14);
@@ -191,11 +193,42 @@ void StartDefaultTask(void const *argument)
 		robot_rot = Deadband(0.3 * 2048 / 500, ((float)(Rightx - 2048)) / 500);
 		Kine_SetSpeed(robot_vx, robot_vy, robot_rot);
 
-		// pos_shengjiang += (Righty - 2048) / 10000.0;
 		// if (pos_shengjiang > 1200) pos_shengjiang = 1200;
 		// if (pos_shengjiang < 0) pos_shengjiang = 0;
 
 		speed_shengjiang = Deadband(0.3 * 2048 / 10, -(Righty - 2048) / 10.0);
+
+		
+		
+		
+
+		if(button_A || button_B || button_C || button_D || button_E || button_F || button_G || button_H)
+		{
+			if (button_E)
+			{
+				// 抓
+				speed_zhuazi = 100;
+				// UD_printf("catch\n");
+			}
+
+			if(button_F)
+			{
+				// 放
+				speed_zhuazi = -100;
+				// UD_printf("release\n");
+			}
+			// UD_printf("Stop\n");
+			// UD_printf("%d %d %d %d %d %d %d %d\n", button_A, button_B, button_C, button_D, button_E, button_F, button_G, button_H);
+		}
+		else
+		{
+			speed_zhuazi = 0;
+			// UD_printf("Stop\n");
+		}
+
+		// UD_printf("%d%d%d%d%d%d%d%d\n", button_A, button_B, button_C, button_D, button_E, button_F, button_G, button_H);
+		// speed_zhuazi = ;
+
 
 		//解算数据->输出数据
 		for (int i = 0; i < Wheel_Num; i++)
@@ -219,8 +252,9 @@ void StartDefaultTask(void const *argument)
 		}
 			// UD_printf("%4.0lf\n", pos[0] + rd[0]*1200);
 
-		positionServo(pos_zhuazi,&hDJI[0]);//pos_zhuazi为正 爪子闭紧
+		// positionServo(pos_zhuazi,&hDJI[0]);//pos_zhuazi为正 爪子闭紧
 		positionServo(pos_toggle,&hDJI[1]);//360 -> 翻转180度
+		speedServo(speed_zhuazi, &hDJI[0]); // 爪子 为正则爪子闭紧
 		speedServo(speed_shengjiang, &hDJI[2]); // 升降
 		// positionServo(pos_shengjiang,&hDJI[2]);
 
