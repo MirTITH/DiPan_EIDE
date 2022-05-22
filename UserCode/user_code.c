@@ -42,7 +42,36 @@ double erpm[4] = {0};
 double epos_offset[4] = {0};
 VESC_t hvesc[4];
 
+double pos_toggle = 0;
+double pos_zhuazi = 0;
+// double pos_shengjiang = 0;
+double speed_shengjiang = 0;
+
 int ads_read_data_sw = 1; // ADS打印开关
+
+/**
+ * @brief 死去限制
+ * 
+ * @param dead_band 应为正值
+ * @param value
+ * @return double 当 fabs(value) < deadband 时，否则视输入正负输出 value - deadband 或 value + deadband；
+ */
+double Deadband(double deadband, double value)
+{
+	if (fabs(value) <= deadband)
+	{
+		return 0.0;
+	}
+
+	if (value > deadband)
+	{
+		return value - deadband;
+	}
+	else
+	{
+		return value + deadband;
+	}
+}
 
 /**
  * @brief 循环变量化简
@@ -93,11 +122,17 @@ void StartDefaultTask(void const *argument)
 
 	//大疆电机初始化
 	CANFilterInit(&hcan1);
+	hDJI[0].motorType = M3508;
+	hDJI[1].motorType = M2006;
+	hDJI[2].motorType = M3508; // 升降
+	
 	hDJI[4].motorType = M2006;
 	hDJI[5].motorType = M2006;
 	hDJI[6].motorType = M2006;
 	hDJI[7].motorType = M2006;
 	DJI_Init();
+
+	hDJI[2].posPID.outputMax = 400;
 
 	// vesc初始化
 	Kine_Init(0.8, 0.8, 0.14, 0.14);
@@ -153,8 +188,14 @@ void StartDefaultTask(void const *argument)
 			robot_vy = 0;
 		}
 
-		robot_rot = ((float)(Rightx - 2048)) / 500;
+		robot_rot = Deadband(0.3 * 2048 / 500, ((float)(Rightx - 2048)) / 500);
 		Kine_SetSpeed(robot_vx, robot_vy, robot_rot);
+
+		// pos_shengjiang += (Righty - 2048) / 10000.0;
+		// if (pos_shengjiang > 1200) pos_shengjiang = 1200;
+		// if (pos_shengjiang < 0) pos_shengjiang = 0;
+
+		speed_shengjiang = Deadband(0.3 * 2048 / 10, -(Righty - 2048) / 10.0);
 
 		//解算数据->输出数据
 		for (int i = 0; i < Wheel_Num; i++)
@@ -177,6 +218,17 @@ void StartDefaultTask(void const *argument)
 			positionServo(pos[i] + rd[i]*1200 + epos_offset[i] * (1200 / (2 * PI)), &hDJI[i + 4]);
 		}
 			// UD_printf("%4.0lf\n", pos[0] + rd[0]*1200);
+
+		positionServo(pos_zhuazi,&hDJI[0]);//pos_zhuazi为正 爪子闭紧
+		positionServo(pos_toggle,&hDJI[1]);//360 -> 翻转180度
+		speedServo(speed_shengjiang, &hDJI[2]); // 升降
+		// positionServo(pos_shengjiang,&hDJI[2]);
+
+		CanTransmit_DJI_1234(&hcan1,
+                             hDJI[0].speedPID.output,
+                             hDJI[1].speedPID.output,
+                             hDJI[2].speedPID.output,
+                             hDJI[3].speedPID.output);
 
 		CanTransmit_DJI_5678(&hcan1,
 							 hDJI[4].speedPID.output,
@@ -237,8 +289,6 @@ void UWheels_Hall_Callback(int id)
 	default:
 		break;
 	}
-
-	// epos_offset[id] = exp_angle - hDJI[id + 4].posPID.cur_error * 2 * PI / 1200  - hall_angle;
 
 	epos_offset[id] -= LoopSimplify(2 * PI, hall_angle - exp_angle + hDJI[id + 4].posPID.cur_error * 2 * PI / 1200);
 	// printf("N %.1lf D %.1lf\n", exp_angle * (180 / PI), -epos_offset[id] * (180 / PI));
