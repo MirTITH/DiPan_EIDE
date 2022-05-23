@@ -264,8 +264,6 @@ void StartDefaultTask(void const *argument)
                              hDJI[2].speedPID.output,
                              hDJI[3].speedPID.output);
 
-		osDelay(3);
-
 		CanTransmit_DJI_5678(&hcan1,
 							 hDJI[4].speedPID.output,
 							 hDJI[5].speedPID.output,
@@ -300,7 +298,7 @@ void StartDefaultTask(void const *argument)
 		// printf("aaa\n");
 		// UD_printf("%d %d %d %d\n", HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_9), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_10), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_11), HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_12));
 
-		osDelay(3);
+		osDelay(2);
 	}
 }
 
