@@ -48,6 +48,11 @@ double pos_toggle = 0;
 double speed_shengjiang = 0;
 double speed_zhuazi = 0;
 
+int8_t dipan_on = 1; // 1=底盘开；0=上面开
+
+int button_D_counter = 0;
+int button_C_counter = 0;
+
 int ads_read_data_sw = 1; // ADS打印开关
 
 /**
@@ -134,7 +139,7 @@ void StartDefaultTask(void const *argument)
 	DJI_Init();
 
 	hDJI[0].speedPID.outputMax = 8000;
-	hDJI[2].speedPID.outputMax = 6000;
+	hDJI[2].speedPID.outputMax = 12000;
 
 	// vesc初始化
 	Kine_Init(0.8, 0.8, 0.14, 0.14);
@@ -196,14 +201,11 @@ void StartDefaultTask(void const *argument)
 		// if (pos_shengjiang > 1200) pos_shengjiang = 1200;
 		// if (pos_shengjiang < 0) pos_shengjiang = 0;
 
-		speed_shengjiang = Deadband(0.3 * 2048 / 10, -(Righty - 2048) / 10.0);
+		speed_shengjiang = Deadband(0.3 * 2048 / 5, -(Righty - 2048) / 5.0);
 
-		
-		
-		
-
-		if(button_A || button_B || button_C || button_D || button_E || button_F || button_G || button_H)
+		if(button_E || button_F)
 		{
+			dipan_on = 0;
 			if (button_E)
 			{
 				// 抓
@@ -226,55 +228,116 @@ void StartDefaultTask(void const *argument)
 			// UD_printf("Stop\n");
 		}
 
-		// UD_printf("%d%d%d%d%d%d%d%d\n", button_A, button_B, button_C, button_D, button_E, button_F, button_G, button_H);
-		// speed_zhuazi = ;
-
-
-		//解算数据->输出数据
-		for (int i = 0; i < Wheel_Num; i++)
+		if (button_D == 1)
 		{
-			pos[i] = wheel[i].wheel_exp.rot_pos * 600 / PI;
-			erpm[i] = -(1200 * wheel[i].wheel_exp.forward_v) / (0.26 * PI);
-			if (i == 1)
-				erpm[i] = (1200 * wheel[i].wheel_exp.forward_v) / (0.26 * PI);
+			if (button_D_counter > 10)
+			{
+				dipan_on = 1;
+			}
+			else
+			{
+				button_D_counter++;
+			}
+		}
+		else
+		{
+			button_D_counter = 0;
 		}
 
-		//角度控制接口
-		for (int i = 0; i < Wheel_Num; i++)
+		if (button_C == 1)
 		{
-
-			if ((pos[i] - buffer[i]) < -1000)
-				rd[i]++; //正转一圈
-			else if ((pos[i] - buffer[i]) > 1000)
-				rd[i]--; //反转一圈
-
-			positionServo(pos[i] + rd[i]*1200 + epos_offset[i] * (1200 / (2 * PI)), &hDJI[i + 4]);
+			if (button_C_counter > 10)
+			{
+				dipan_on = 0;
+			}
+			else
+			{
+				button_C_counter++;
+			}
 		}
-			// UD_printf("%4.0lf\n", pos[0] + rd[0]*1200);
+		else
+		{
+			button_C_counter = 0;
+		}
+
+		
+		// UD_printf("%4.0lf\n", pos[0] + rd[0]*1200);
 
 		// positionServo(pos_zhuazi,&hDJI[0]);//pos_zhuazi为正 爪子闭紧
-		positionServo(pos_toggle,&hDJI[1]);//360 -> 翻转180度
-		speedServo(speed_zhuazi, &hDJI[0]); // 爪子 为正则爪子闭紧
-		speedServo(speed_shengjiang, &hDJI[2]); // 升降
+
 		// positionServo(pos_shengjiang,&hDJI[2]);
 
-		CanTransmit_DJI_1234(&hcan1,
-                             hDJI[0].speedPID.output,
-                             hDJI[1].speedPID.output,
-                             hDJI[2].speedPID.output,
-                             hDJI[3].speedPID.output);
+		if (dipan_on)
+		{
+			//解算数据->输出数据
+			for (int i = 0; i < Wheel_Num; i++)
+			{
+				pos[i] = wheel[i].wheel_exp.rot_pos * 600 / PI;
+				erpm[i] = -(1200 * wheel[i].wheel_exp.forward_v) / (0.26 * PI);
+				if (i == 1)
+					erpm[i] = (1200 * wheel[i].wheel_exp.forward_v) / (0.26 * PI);
+			}
 
-		CanTransmit_DJI_5678(&hcan1,
+			//角度控制接口
+			for (int i = 0; i < Wheel_Num; i++)
+			{
+
+				if ((pos[i] - buffer[i]) < -1000)
+					rd[i]++; //正转一圈
+				else if ((pos[i] - buffer[i]) > 1000)
+					rd[i]--; //反转一圈
+
+				positionServo(pos[i] + rd[i]*1200 + epos_offset[i] * (1200 / (2 * PI)), &hDJI[i + 4]);
+			}
+
+			CanTransmit_DJI_5678(&hcan1,
 							 hDJI[4].speedPID.output,
 							 hDJI[5].speedPID.output,
 							 hDJI[6].speedPID.output,
 							 hDJI[7].speedPID.output);
+
+			CanTransmit_DJI_1234(&hcan1,
+                             0,
+                             0,
+                             0,
+                             0);
 
 		//速度控制接口
 		VESC_CAN_SET_ERPM(&hvesc[0], erpm[0]);
 		VESC_CAN_SET_ERPM(&hvesc[1], erpm[1]);
 		VESC_CAN_SET_ERPM(&hvesc[2], erpm[2]);
 		VESC_CAN_SET_ERPM(&hvesc[3], erpm[3]);
+
+		}
+		else
+		{
+			positionServo(pos_toggle,&hDJI[1]);//360 -> 翻转180度
+			speedServo(speed_zhuazi, &hDJI[0]); // 爪子 为正则爪子闭紧
+			speedServo(speed_shengjiang, &hDJI[2]); // 升降
+
+			CanTransmit_DJI_5678(&hcan1,
+							 0,
+							 0,
+							 0,
+							 0);
+
+			CanTransmit_DJI_1234(&hcan1,
+                             hDJI[0].speedPID.output,
+                             hDJI[1].speedPID.output,
+                             hDJI[2].speedPID.output,
+                             hDJI[3].speedPID.output);
+			
+			//速度控制接口
+			VESC_CAN_SET_ERPM(&hvesc[0], 0);
+			VESC_CAN_SET_ERPM(&hvesc[1], 0);
+			VESC_CAN_SET_ERPM(&hvesc[2], 0);
+			VESC_CAN_SET_ERPM(&hvesc[3], 0);
+		}
+
+		
+
+		
+
 		
 		// if (ads_read_data_sw)
 		// {
