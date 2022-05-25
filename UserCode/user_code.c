@@ -134,7 +134,7 @@ void StartDefaultTask(void const *argument)
 	DJI_Init();
 
 	hDJI[0].speedPID.outputMax = 8000;
-	hDJI[2].speedPID.outputMax = 6000;
+	hDJI[2].speedPID.outputMax = 12000;
 
 	// vesc初始化
 	Kine_Init(0.8, 0.8, 0.14, 0.14);
@@ -196,11 +196,7 @@ void StartDefaultTask(void const *argument)
 		// if (pos_shengjiang > 1200) pos_shengjiang = 1200;
 		// if (pos_shengjiang < 0) pos_shengjiang = 0;
 
-		speed_shengjiang = Deadband(0.3 * 2048 / 10, -(Righty - 2048) / 10.0);
-
-		
-		
-		
+		speed_shengjiang = Deadband(0.3 * 2048 / 3, -(Righty - 2048) / 3.0);
 
 		if(button_A || button_B || button_C || button_D || button_E || button_F || button_G || button_H)
 		{
