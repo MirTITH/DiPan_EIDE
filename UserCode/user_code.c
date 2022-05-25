@@ -197,6 +197,7 @@ void StartDefaultTask(void const *argument)
 		// if (pos_shengjiang < 0) pos_shengjiang = 0;
 
 		speed_shengjiang = Deadband(0.3 * 2048 / 3, -(Righty - 2048) / 3.0);
+		UD_printf("sj %lf\n", speed_shengjiang);
 
 		if(button_A || button_B || button_C || button_D || button_E || button_F || button_G || button_H)
 		{
@@ -221,6 +222,8 @@ void StartDefaultTask(void const *argument)
 			speed_zhuazi = 0;
 			// UD_printf("Stop\n");
 		}
+
+		UD_printf("zz %lf\n", speed_zhuazi);
 
 		// UD_printf("%d%d%d%d%d%d%d%d\n", button_A, button_B, button_C, button_D, button_E, button_F, button_G, button_H);
 		// speed_zhuazi = ;
@@ -250,8 +253,8 @@ void StartDefaultTask(void const *argument)
 
 		// positionServo(pos_zhuazi,&hDJI[0]);//pos_zhuazi为正 爪子闭紧
 		positionServo(pos_toggle,&hDJI[1]);//360 -> 翻转180度
-		speedServo(speed_zhuazi, &hDJI[0]); // 爪子 为正则爪子闭紧
-		speedServo(speed_shengjiang, &hDJI[2]); // 升降
+		// speedServo(speed_zhuazi, &hDJI[0]); // 爪子 为正则爪子闭紧
+		// speedServo(speed_shengjiang, &hDJI[2]); // 升降
 		// positionServo(pos_shengjiang,&hDJI[2]);
 
 		CanTransmit_DJI_1234(&hcan1,
