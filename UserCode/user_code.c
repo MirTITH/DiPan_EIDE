@@ -116,8 +116,8 @@ double LoopSimplify_Positive(double cycle, double value)
 
 void StartDefaultTask(void const *argument)
 {
-	CLI_Init(&huart3);
-	UD_SetPrintfDevice(UD_Find(&huart3));
+	CLI_Init(&huart6);
+	UD_SetPrintfDevice(UD_Find(&huart6));
 
 	osDelay(500);
 
@@ -148,7 +148,7 @@ void StartDefaultTask(void const *argument)
 	hvesc[3].controller_id = 0x03;
 
 	//AS69接收初始化
-	nrf_receive_init();
+	// nrf_receive_init();
 
 	pos[0] = pos[1] = pos[2] = pos[3] = 0;
 	buffer[0] = buffer[1] = buffer[2] = buffer[3] = 0;
@@ -196,37 +196,8 @@ void StartDefaultTask(void const *argument)
 		// if (pos_shengjiang > 1200) pos_shengjiang = 1200;
 		// if (pos_shengjiang < 0) pos_shengjiang = 0;
 
-		speed_shengjiang = Deadband(0.3 * 2048 / 3, -(Righty - 2048) / 3.0);
-		UD_printf("sj %lf\n", speed_shengjiang);
-
-		if(button_A || button_B || button_C || button_D || button_E || button_F || button_G || button_H)
-		{
-			if (button_E)
-			{
-				// 抓
-				speed_zhuazi = 400;
-				// UD_printf("catch\n");
-			}
-
-			if(button_F)
-			{
-				// 放
-				speed_zhuazi = -400;
-				// UD_printf("release\n");
-			}
-			// UD_printf("Stop\n");
-			// UD_printf("%d %d %d %d %d %d %d %d\n", button_A, button_B, button_C, button_D, button_E, button_F, button_G, button_H);
-		}
-		else
-		{
-			speed_zhuazi = 0;
-			// UD_printf("Stop\n");
-		}
-
-		UD_printf("zz %lf\n", speed_zhuazi);
-
 		// UD_printf("%d%d%d%d%d%d%d%d\n", button_A, button_B, button_C, button_D, button_E, button_F, button_G, button_H);
-		// speed_zhuazi = ;
+
 
 
 		//解算数据->输出数据
@@ -253,8 +224,8 @@ void StartDefaultTask(void const *argument)
 
 		// positionServo(pos_zhuazi,&hDJI[0]);//pos_zhuazi为正 爪子闭紧
 		positionServo(pos_toggle,&hDJI[1]);//360 -> 翻转180度
-		// speedServo(speed_zhuazi, &hDJI[0]); // 爪子 为正则爪子闭紧
-		// speedServo(speed_shengjiang, &hDJI[2]); // 升降
+		speedServo(speed_zhuazi, &hDJI[0]); // 爪子 为正则爪子闭紧
+		speedServo(speed_shengjiang, &hDJI[2]); // 升降
 		// positionServo(pos_shengjiang,&hDJI[2]);
 
 		CanTransmit_DJI_1234(&hcan1,
@@ -263,17 +234,17 @@ void StartDefaultTask(void const *argument)
                              hDJI[2].speedPID.output,
                              hDJI[3].speedPID.output);
 
-		CanTransmit_DJI_5678(&hcan1,
-							 hDJI[4].speedPID.output,
-							 hDJI[5].speedPID.output,
-							 hDJI[6].speedPID.output,
-							 hDJI[7].speedPID.output);
+		// CanTransmit_DJI_5678(&hcan1,
+		// 					 hDJI[4].speedPID.output,
+		// 					 hDJI[5].speedPID.output,
+		// 					 hDJI[6].speedPID.output,
+		// 					 hDJI[7].speedPID.output);
 
-		//速度控制接口
-		VESC_CAN_SET_ERPM(&hvesc[0], erpm[0]);
-		VESC_CAN_SET_ERPM(&hvesc[1], erpm[1]);
-		VESC_CAN_SET_ERPM(&hvesc[2], erpm[2]);
-		VESC_CAN_SET_ERPM(&hvesc[3], erpm[3]);
+		// //速度控制接口
+		// VESC_CAN_SET_ERPM(&hvesc[0], erpm[0]);
+		// VESC_CAN_SET_ERPM(&hvesc[1], erpm[1]);
+		// VESC_CAN_SET_ERPM(&hvesc[2], erpm[2]);
+		// VESC_CAN_SET_ERPM(&hvesc[3], erpm[3]);
 		
 		// if (ads_read_data_sw)
 		// {

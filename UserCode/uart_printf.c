@@ -22,7 +22,7 @@
 
 PUTCHAR_PROTOTYPE
 {
-	while (HAL_UART_Transmit(&UART_Printf_Config_huart, (uint8_t *)&ch, 1, 0xffff) == HAL_BUSY);
+	// while (HAL_UART_Transmit(&UART_Printf_Config_huart, (uint8_t *)&ch, 1, 0xffff) == HAL_BUSY);
 	return ch;
 }
 
