@@ -20,6 +20,8 @@
 void vRegisterCustomCLICommands(void)
 {
 	CLI_New_Command(testvar, set CLI_test_var, F_Set_CLI_test_var, -1);
+	CLI_New_Command(zz, set zhuazi, F_Set_zhuazi, -1);
+	CLI_New_Command(sj, set shengjiang, F_Set_shengjiang, -1);
 	CLI_New_Command(eposo, set epos_offset, F_Set_epos_offset, -1);
 	CLI_New_Command(kamimadoka, kami.im, F_kamimadoka, 0);
 	CLI_New_Command(ads_read_reg, Read all registers of ADS1256, F_ads_read_reg, 0);
@@ -54,6 +56,51 @@ BaseType_t F_Set_CLI_test_var(char *pcWriteBuffer, size_t xWriteBufferLen, const
 		CLI_test_var = atof(pcParameter);
 
 		UD_printf("Set CLI_test_var = %g", CLI_test_var);
+		// UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
+	}
+
+	return pdFALSE; // 结束执行
+}
+extern double speed_zhuazi;
+BaseType_t F_Set_zhuazi(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+{
+	BaseType_t xParameterStringLength;
+	const char *pcParameter;
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
+
+	if (pcParameter == NULL) // 说明没有带参数
+	{
+		UD_printf("speed_zhuazi == %.2lg", speed_zhuazi);
+		// UD_printf("CLI_test_var == %.15lg", CLI_test_var); //double 型数据用这行更好
+	}
+	else
+	{
+		speed_zhuazi = atof(pcParameter);
+
+		UD_printf("Set speed_zhuazi = %.2lg", speed_zhuazi);
+		// UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
+	}
+
+	return pdFALSE; // 结束执行
+}
+
+extern double speed_shengjiang;
+BaseType_t F_Set_shengjiang(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+{
+	BaseType_t xParameterStringLength;
+	const char *pcParameter;
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
+
+	if (pcParameter == NULL) // 说明没有带参数
+	{
+		UD_printf("speed_shengjiang == %.2lg", speed_shengjiang);
+		// UD_printf("CLI_test_var == %.15lg", CLI_test_var); //double 型数据用这行更好
+	}
+	else
+	{
+		speed_shengjiang = atof(pcParameter);
+
+		UD_printf("Set speed_shengjiang = %.2lg", speed_shengjiang);
 		// UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
 	}
 
