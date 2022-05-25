@@ -23,7 +23,7 @@
             "editor.tabSize": 4,
             "editor.autoIndent": "advanced"
         },
-        "EIDE.SerialPortMonitor.BaudRate": 921600
+        "EIDE.SerialPortMonitor.BaudRate": 9600
     },
     "extensions": {
         "recommendations": [

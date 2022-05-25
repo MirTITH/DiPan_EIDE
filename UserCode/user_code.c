@@ -16,7 +16,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
 #include "user_code.h"
 #include "CLI.h"
-#include "ADS1256.h"
+// #include "ADS1256.h"
 #include "uart_device.h"
 #include "TITH_time.h"
 #include <math.h>
@@ -26,7 +26,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include "Caculate.h"
 #include "vesc.h"
 #include "kinematic_calc.h"
-#include "nrf_com.h"
+// #include "nrf_com.h"
 
 //由遥控器直接得到的机器人速度
 double robot_vx=0;
@@ -174,10 +174,6 @@ void StartDefaultTask(void const *argument)
 			buffer[i] = pos[i];
 		}
 
-		//运动解算
-		robot_vx = ((float)(2048 - Leftx)) / 500;
-		robot_vy = ((float)(2048 - Lefty)) / 500;
-
 		double v = sqrt(robot_vx * robot_vx + robot_vy * robot_vy);
 		if(v > 2)
 		{
@@ -190,15 +186,10 @@ void StartDefaultTask(void const *argument)
 			robot_vy = 0;
 		}
 
-		robot_rot = Deadband(0.3 * 2048 / 500, ((float)(Rightx - 2048)) / 500);
-		Kine_SetSpeed(robot_vx, robot_vy, robot_rot);
-
 		// if (pos_shengjiang > 1200) pos_shengjiang = 1200;
 		// if (pos_shengjiang < 0) pos_shengjiang = 0;
 
 		// UD_printf("%d%d%d%d%d%d%d%d\n", button_A, button_B, button_C, button_D, button_E, button_F, button_G, button_H);
-
-
 
 		//解算数据->输出数据
 		for (int i = 0; i < Wheel_Num; i++)

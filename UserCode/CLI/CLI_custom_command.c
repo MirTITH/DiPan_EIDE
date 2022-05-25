@@ -10,7 +10,7 @@
  */
 
 #include "CLI_custom_command.h"
-#include "ADS1256.h"
+// #include "ADS1256.h"
 #include "uart_device.h"
 
 /**
@@ -19,13 +19,13 @@
  */
 void vRegisterCustomCLICommands(void)
 {
-	CLI_New_Command(testvar, set CLI_test_var, F_Set_CLI_test_var, -1);
+	// CLI_New_Command(testvar, set CLI_test_var, F_Set_CLI_test_var, -1);
 	CLI_New_Command(zz, set zhuazi, F_Set_zhuazi, -1);
 	CLI_New_Command(sj, set shengjiang, F_Set_shengjiang, -1);
-	CLI_New_Command(eposo, set epos_offset, F_Set_epos_offset, -1);
+	// CLI_New_Command(eposo, set epos_offset, F_Set_epos_offset, -1);
 	CLI_New_Command(kamimadoka, kami.im, F_kamimadoka, 0);
-	CLI_New_Command(ads_read_reg, Read all registers of ADS1256, F_ads_read_reg, 0);
-	CLI_New_Command(ads_read_data_sw, ADS1256 read data switch, F_ads_read_data_sw, 0);
+	// CLI_New_Command(ads_read_reg, Read all registers of ADS1256, F_ads_read_reg, 0);
+	// CLI_New_Command(ads_read_data_sw, ADS1256 read data switch, F_ads_read_data_sw, 0);
 }
 
 
@@ -150,31 +150,31 @@ BaseType_t F_kamimadoka(char *pcWriteBuffer, size_t xWriteBufferLen, const char 
 	return pdPASS; // 循环执行
 }
 
-BaseType_t F_ads_read_reg(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
-{
-	ADS1256_REG ads1256_reg;
-	ads1256_reg = ADS1256_RREG_All();
-	UD_printf("STATUS: %2X\n", ads1256_reg.STATUS);
-	UD_printf("MUX:    %2X\n", ads1256_reg.MUX);
-	UD_printf("ADCON:  %2X\n", ads1256_reg.ADCON);
-	UD_printf("DRATE:  %2X\n", ads1256_reg.DRATE);
-	UD_printf("IO:     %2X\n", ads1256_reg.IO);
-	return pdFALSE; // 结束执行
-}
+// BaseType_t F_ads_read_reg(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+// {
+// 	ADS1256_REG ads1256_reg;
+// 	ads1256_reg = ADS1256_RREG_All();
+// 	UD_printf("STATUS: %2X\n", ads1256_reg.STATUS);
+// 	UD_printf("MUX:    %2X\n", ads1256_reg.MUX);
+// 	UD_printf("ADCON:  %2X\n", ads1256_reg.ADCON);
+// 	UD_printf("DRATE:  %2X\n", ads1256_reg.DRATE);
+// 	UD_printf("IO:     %2X\n", ads1256_reg.IO);
+// 	return pdFALSE; // 结束执行
+// }
 
-extern int ads_read_data_sw;
-BaseType_t F_ads_read_data_sw(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
-{
-	if (ads_read_data_sw == 0)
-	{
-		UD_printf("Set ads_read_data_sw = 1\n");
-		ads_read_data_sw = 1;
-	}
-	else
-	{
-		UD_printf("Set ads_read_data_sw = 0\n");
-		ads_read_data_sw = 0;
-	}
+// extern int ads_read_data_sw;
+// BaseType_t F_ads_read_data_sw(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+// {
+// 	if (ads_read_data_sw == 0)
+// 	{
+// 		UD_printf("Set ads_read_data_sw = 1\n");
+// 		ads_read_data_sw = 1;
+// 	}
+// 	else
+// 	{
+// 		UD_printf("Set ads_read_data_sw = 0\n");
+// 		ads_read_data_sw = 0;
+// 	}
 
-	return pdFALSE; // 结束执行
-}
+// 	return pdFALSE; // 结束执行
+// }

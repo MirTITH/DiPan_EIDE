@@ -335,7 +335,7 @@
               <MiscControls />
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine />
-              <IncludePath>../Core/Inc;                        ../Drivers/STM32F4xx_HAL_Driver/Inc;                        ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;                        ../Middlewares/Third_Party/FreeRTOS/Source/include;                        ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;                        ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;                        ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;                        ../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../Core/Inc;                           ../Drivers/STM32F4xx_HAL_Driver/Inc;                           ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;                           ../Middlewares/Third_Party/FreeRTOS/Source/include;                           ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;                           ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;                           ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;                           ../Drivers/CMSIS/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -468,11 +468,6 @@
               <FileName>dma.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/dma.c</FilePath>
-            </File>
-            <File>
-              <FileName>spi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Core/Src/spi.c</FilePath>
             </File>
             <File>
               <FileName>usart.c</FileName>
@@ -623,11 +618,6 @@
               <FileName>stm32f4xx_hal_exti.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_hal_spi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_hal_tim.c</FileName>
