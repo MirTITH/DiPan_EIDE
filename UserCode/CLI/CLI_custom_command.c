@@ -71,14 +71,14 @@ BaseType_t F_Set_zhuazi(char *pcWriteBuffer, size_t xWriteBufferLen, const char 
 	if (pcParameter == NULL) // 说明没有带参数
 	{
 		// UD_printf("speed_zhuazi == %.2lg", speed_zhuazi);
-		// UD_printf("sp %.1ld", speed_zhuazi); //double 型数据用这行更好
+		// UD_printf("zz %.1ld\n", speed_zhuazi); //double 型数据用这行更好
 	}
 	else
 	{
 		speed_zhuazi = atof(pcParameter);
 
 		// UD_printf("Set speed_zhuazi = %.2lg", speed_zhuazi);
-		// UD_printf("sp %.1lf\n", speed_zhuazi); //double 型数据用这行更好
+		// UD_printf("zz %.1lf\n", speed_zhuazi); //double 型数据用这行更好
 	}
 
 	return pdFALSE; // 结束执行
