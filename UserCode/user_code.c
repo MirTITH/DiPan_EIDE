@@ -116,7 +116,8 @@ double LoopSimplify_Positive(double cycle, double value)
 
 void StartDefaultTask(void const *argument)
 {
-	CLI_Init(&huart3);
+	// CLI_Init(&huart3);
+	UD_Open(UD_New(&huart3, 256, 64, UartDevice_DMA, UartDevice_IT));
 	UD_SetPrintfDevice(UD_Find(&huart3));
 
 	osDelay(500);
