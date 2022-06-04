@@ -224,7 +224,7 @@ void StartDefaultTask(void const *argument)
 			// UD_printf("Stop\n");
 		}
 
-		UD_printf("sc %.3lf %.0lf\n",speed_shengjiang, speed_zhuazi);
+		UD_printf("sc %.0lf %.3lf\n", speed_zhuazi, speed_shengjiang);
 
 		// UD_printf("%d%d%d%d%d%d%d%d\n", button_A, button_B, button_C, button_D, button_E, button_F, button_G, button_H);
 		// speed_zhuazi = ;
