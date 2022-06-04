@@ -198,7 +198,7 @@ void StartDefaultTask(void const *argument)
 		// if (pos_shengjiang < 0) pos_shengjiang = 0;
 
 		speed_shengjiang = Deadband(0.3 * 2048 / 3, -(Righty - 2048) / 3.0);
-		UD_printf("sj %lf\n", speed_shengjiang);
+		// UD_printf("sj %lf\n", speed_shengjiang);
 
 		if(button_A || button_B || button_C || button_D || button_E || button_F || button_G || button_H)
 		{
@@ -224,7 +224,7 @@ void StartDefaultTask(void const *argument)
 			// UD_printf("Stop\n");
 		}
 
-		UD_printf("zz %lf\n", speed_zhuazi);
+		UD_printf("sc %.3lf %.0lf\n",speed_shengjiang, speed_zhuazi);
 
 		// UD_printf("%d%d%d%d%d%d%d%d\n", button_A, button_B, button_C, button_D, button_E, button_F, button_G, button_H);
 		// speed_zhuazi = ;
