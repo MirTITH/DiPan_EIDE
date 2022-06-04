@@ -114,11 +114,23 @@ double LoopSimplify_Positive(double cycle, double value)
 	return mod_value;
 }
 
+void UART_Send(void const *argument)
+{
+	while (1)
+	{
+		UD_printf("sc %.0lf %.3lf\n", speed_zhuazi, speed_shengjiang);
+		osDelay(50);
+	}
+}
+
 void StartDefaultTask(void const *argument)
 {
 	// CLI_Init(&huart3);
 	UD_Open(UD_New(&huart3, 256, 64, UartDevice_DMA, UartDevice_IT));
 	UD_SetPrintfDevice(UD_Find(&huart3));
+
+	osThreadDef(sendder, UART_Send, osPriorityNormal, 0, 128);
+	osThreadCreate(osThread(sendder), NULL);
 
 	osDelay(500);
 
@@ -223,8 +235,6 @@ void StartDefaultTask(void const *argument)
 			speed_zhuazi = 0;
 			// UD_printf("Stop\n");
 		}
-
-		UD_printf("sc %.0lf %.3lf\n", speed_zhuazi, speed_shengjiang);
 
 		// UD_printf("%d%d%d%d%d%d%d%d\n", button_A, button_B, button_C, button_D, button_E, button_F, button_G, button_H);
 		// speed_zhuazi = ;
