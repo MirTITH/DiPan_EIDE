@@ -20,8 +20,9 @@
 void vRegisterCustomCLICommands(void)
 {
 	// CLI_New_Command(testvar, set CLI_test_var, F_Set_CLI_test_var, -1);
-	CLI_New_Command(zz, set zhuazi, F_Set_zhuazi, -1);
-	CLI_New_Command(sj, set shengjiang, F_Set_shengjiang, -1);
+	// CLI_New_Command(zz, set zhuazi, F_Set_zhuazi, -1);
+	// CLI_New_Command(sj, set shengjiang, F_Set_shengjiang, -1);
+	CLI_New_Command(sc, shengjiang zhuazi, F_Set_shangceng, -1);
 	// CLI_New_Command(eposo, set epos_offset, F_Set_epos_offset, -1);
 	// CLI_New_Command(kamimadoka, kami.im, F_kamimadoka, 0);
 	// CLI_New_Command(ads_read_reg, Read all registers of ADS1256, F_ads_read_reg, 0);
@@ -102,6 +103,29 @@ BaseType_t F_Set_shengjiang(char *pcWriteBuffer, size_t xWriteBufferLen, const c
 
 		// UD_printf("Set speed_shengjiang = %.2lg", speed_shengjiang);
 		// UD_printf("sj %.1lf\n", speed_shengjiang); //double 型数据用这行更好
+	}
+
+	return pdFALSE; // 结束执行
+}
+
+BaseType_t F_Set_shangceng(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+{
+	BaseType_t xParameterStringLength;
+	const char *pcParameter;
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
+
+	if (pcParameter != NULL) // 说明没有带参数
+	{
+		speed_zhuazi = atof(pcParameter);
+		// UD_printf("zz %.2lf ", speed_zhuazi);
+	}
+
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 2, &xParameterStringLength);
+
+	if (pcParameter != NULL) // 说明没有带参数
+	{
+		speed_shengjiang = atof(pcParameter);
+		// UD_printf("sj %.2lf\n", speed_shengjiang);
 	}
 
 	return pdFALSE; // 结束执行
