@@ -108,24 +108,78 @@ BaseType_t F_Set_shengjiang(char *pcWriteBuffer, size_t xWriteBufferLen, const c
 	return pdFALSE; // 结束执行
 }
 
+int sc_counter = 0;
+// double t_speed_zhuazi, t_speed_shengjiang;
+
+double myatof(char s[])
+{
+    double small=1,sum=0,falg=1;
+    int i=0;
+    //去掉遇到数字前的其他字符
+    while(!(s[i]>='0'&&s[i]<='9'||s[i]=='+'||s[i]=='-'||s[i]=='.')&&s[i]!='\0'){
+        i++;
+    }
+    //无数字字符，sum为0；
+    if(s[i]=='\0') 
+	    sum=0;
+	else{
+	    if(s[i]=='-'){             //如果读到负号用falg标记
+	        falg=-1;
+	        i++;
+	    }
+	    if(s[i]=='+'){              //读到正号则跳过
+	        i++;
+	    }
+	    //计算小数点前的数字
+	    while(s[i]>='0'&&s[i]<='9')  
+	        {
+	            sum=sum*10+(s[i]-'0');
+	            i++;
+	        }
+	    //计算小数点后数字，并统计位数，用small记录，最后除以small变小数
+	    if(s[i]=='.')
+	    {
+	    	i++;
+	    	while(s[i]>='0'&&s[i]<='9')
+	    	{
+	    		sum=sum*10+(s[i]-'0');
+	    		i++;
+	    		small*=10;
+			}
+		}
+        if(sum==0){     //如果不进行sum=0时直接进行else操作sum也会等于0但无法过测试点无任何有效数字字符时输出0.000000
+            sum=0;
+        }
+        else{           
+		    sum=falg*sum/small;
+        }
+	}
+    return sum;
+}
+
 BaseType_t F_Set_shangceng(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
 {
 	BaseType_t xParameterStringLength;
 	const char *pcParameter;
 	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
 
+	// UD_printf("enter\n", speed_zhuazi);
+
+	// HAL_Delay(2);
+
 	if (pcParameter != NULL) // 说明没有带参数
 	{
-		speed_zhuazi = atof(pcParameter);
-		// UD_printf("zz %.2lf ", speed_zhuazi);
+		speed_zhuazi = myatof(pcParameter);
+		// UD_printf("z %.2lf ", speed_zhuazi);
 	}
 
 	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 2, &xParameterStringLength);
 
 	if (pcParameter != NULL) // 说明没有带参数
 	{
-		speed_shengjiang = atof(pcParameter);
-		// UD_printf("sj %.2lf\n", speed_shengjiang);
+		speed_shengjiang = myatof(pcParameter);
+		// UD_printf("2:%s\n", pcParameter);
+		// UD_printf("s %.2lf\n", speed_shengjiang);
 	}
 
 	return pdFALSE; // 结束执行

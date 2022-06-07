@@ -16,7 +16,8 @@
             "*.c++": "cpp",
             "*.cpp": "cpp",
             "*.cxx": "cpp",
-            "*.cc": "cpp"
+            "*.cc": "cpp",
+            "cstdlib": "c"
         },
         "[yaml]": {
             "editor.insertSpaces": true,
