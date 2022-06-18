@@ -120,6 +120,7 @@ double LoopSimplify_Positive(double cycle, double value)
 UART_DEVICE* print_device;
 
 int tx_sem_counter = 0;
+extern int fix_counter;
 
 void TestTask(void const *argument)
 {
@@ -127,7 +128,7 @@ void TestTask(void const *argument)
 	{
 		tx_sem_counter = (int)uxSemaphoreGetCount(print_device->tx_sem);
 		// printf("%d ", tx_sem_counter);
-		UD_printf("udpf\n");
+		UD_printf("fix:\t\t%d\n", fix_counter);
 		osDelay(1000);
 	}
 }

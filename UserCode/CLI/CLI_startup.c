@@ -23,7 +23,7 @@ void CLI_Init(UART_HandleTypeDef *huart)
 	CLI_huart = huart;
 	cli_uart_device = UD_New(CLI_huart, 256, 64, UartDevice_DMA, UartDevice_IT);
 	UD_Open(cli_uart_device);
-	osThreadDef(CLI, cli_task, osPriorityBelowNormal, 0, 128);
+	osThreadDef(CLI, cli_task, osPriorityBelowNormal, 0, 512);
 	cli_taskHandle = osThreadCreate(osThread(CLI), NULL);
 }
 

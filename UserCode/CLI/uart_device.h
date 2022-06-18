@@ -42,6 +42,7 @@ typedef struct
 	uint16_t rx_queue_length;
 	QueueHandle_t rx_queue;
 	BaseType_t (*RxFunc)(UART_HandleTypeDef *huart, char *pData, uint16_t size);
+	osThreadId thread_id;
 } UART_DEVICE;
 
 typedef enum

@@ -90,7 +90,6 @@ BaseType_t F_kamimadoka(char *pcWriteBuffer, size_t xWriteBufferLen, const char 
 
 //-------------------------------自定义命令写在下面（记得在上面的vRegisterCustomCLICommands()中注册）--------------------------
 
-int sc_counter = 0;
 extern double speed_shengjiang;
 extern double speed_zhuazi;
 BaseType_t F_Set_shangceng(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
@@ -105,19 +104,16 @@ BaseType_t F_Set_shangceng(char *pcWriteBuffer, size_t xWriteBufferLen, const ch
 
 	if (pcParameter != NULL) // 说明没有带参数
 	{
-		speed_zhuazi = myatof(pcParameter);
-		// UD_printf("z %.15lg ", speed_zhuazi);
+		speed_zhuazi = atof(pcParameter);
+		// printf("z %g ", speed_zhuazi);
 	}
-
 	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 2, &xParameterStringLength);
 
 	if (pcParameter != NULL) // 说明没有带参数
 	{
-		speed_shengjiang = myatof(pcParameter);
-		// UD_printf("s %.2lf", speed_shengjiang);
-		// UD_printf("%d\n", (sc_counter++) % 100);
+		speed_shengjiang = atof(pcParameter);
+		// UD_printf("s %g\n", speed_shengjiang);
 	}
-
 	return pdFALSE; // 结束执行
 }
 

@@ -21,10 +21,43 @@ static UART_DEVICE *uart_devices[MAX_UartDevice_Num] = {NULL};
 
 UART_DEVICE *printf_uart_device = NULL;
 
+int fix_counter = 0;
+
+void UD_task(void const *argument)
+{
+	UART_DEVICE *uart_device = (UART_DEVICE *)argument;
+	int counter = 0;
+	while (1)
+	{
+		// 串口传输完成有极小概率不进入回调函数，为防止卡串口，在这里给信号量
+		osDelay(10);
+		if(uart_device->is_open && uxSemaphoreGetCount(uart_device->tx_sem) == 0)
+		{
+			counter++;
+		}
+		else
+		{
+			counter = 0;
+		}
+
+		if (counter > 3)
+		{
+			counter = 0;
+			if (uart_device->huart->gState == HAL_UART_STATE_READY)
+			{
+				xSemaphoreGive(uart_device->tx_sem);
+			}
+			fix_counter++;
+		}
+	}
+}
+
 void UD_SetPrintfDevice(UART_DEVICE *uart_device)
 {
 	printf_uart_device = uart_device;
 }
+
+extern int sem_take_time;
 
 BaseType_t UD_printf(const char *format, ...)
 {
@@ -33,6 +66,7 @@ BaseType_t UD_printf(const char *format, ...)
 
 	if (xSemaphoreTake(printf_uart_device->tx_sem, portMAX_DELAY) == pdPASS)
 	{
+		sem_take_time++;
 		va_list args_list;
 		va_start(args_list, format);
 		vsnprintf((char *)printf_uart_device->tx_buffer, printf_uart_device->tx_buffer_length, format, args_list);
@@ -115,12 +149,15 @@ BaseType_t UD_Transmit(UART_HandleTypeDef *huart, const char *pData, uint16_t si
 	}
 }
 
+extern int sem_take_time, sem_give_time;
+
 BaseType_t UD_Open(UART_DEVICE *uart_device)
 {
 	if (uart_device == NULL)
 		return pdFAIL;
 
 	xSemaphoreGive(uart_device->tx_sem);
+	sem_give_time++;
 	uart_device->RxFunc(uart_device->huart, &uart_device->rx_temp_char, 1);
 	uart_device->is_open = pdTRUE;
 	return pdPASS;
@@ -131,6 +168,7 @@ void UD_Close(UART_DEVICE *uart_device)
 	if (uart_device == NULL)
 		return;
 	xSemaphoreTake(uart_device->tx_sem, portMAX_DELAY);
+	sem_take_time++;
 	uart_device->is_open = pdFALSE;
 }
 
@@ -245,6 +283,9 @@ UART_DEVICE *UD_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length, uint16
 				break;
 			}
 
+			osThreadDef(uart_device, UD_task, osPriorityAboveNormal, 0, 128);
+			uart_devices[i]->thread_id = osThreadCreate(osThread(uart_device), uart_devices[i]);
+
 			return uart_devices[i];
 		}
 	}
@@ -256,6 +297,8 @@ void UD_Del(UART_DEVICE *uart_device)
 {
 	if (uart_device == NULL)
 		return;
+
+	vTaskDelete(uart_device->thread_id);
 
 	uart_device->is_open = pdFALSE;
 	uart_device->huart = NULL;
@@ -308,6 +351,7 @@ BaseType_t UD_WriteStr(UART_DEVICE *uart_device, const char *str, uint16_t lengt
 
 	if (xSemaphoreTake(uart_device->tx_sem, timeout) == pdPASS)
 	{
+		sem_take_time++;
 		uart_device->TxFunc(uart_device->huart, str, length);
 		return pdPASS;
 	}
@@ -325,6 +369,7 @@ BaseType_t UD_WriteStrCopy(UART_DEVICE *uart_device, const char *str, uint16_t l
 
 	if (xSemaphoreTake(uart_device->tx_sem, timeout) == pdPASS)
 	{
+		sem_take_time++;
 		uint32_t str_len = length;
 		if (str_len > uart_device->tx_buffer_length)
 			str_len = uart_device->tx_buffer_length;
@@ -344,9 +389,11 @@ BaseType_t UD_WriteChar(UART_DEVICE *uart_device, char cha, uint32_t timeout)
 
 	if (xSemaphoreTake(uart_device->tx_sem, timeout) == pdPASS)
 	{
+		sem_take_time++;
 		BaseType_t result;
 		result = uart_device->TxFuncBlock(uart_device->huart, &cha, 1, timeout);
 		xSemaphoreGive(uart_device->tx_sem);
+		sem_give_time++;
 		return result;
 	}
 
@@ -358,7 +405,9 @@ void UD_Sync(UART_DEVICE *uart_device)
 	if (uart_device == NULL || uart_device->is_open == pdFALSE)
 		return;
 	xSemaphoreTake(uart_device->tx_sem, portMAX_DELAY);
+	sem_take_time++;
 	xSemaphoreGive(uart_device->tx_sem);
+	sem_give_time++;
 }
 
 BaseType_t UD_Read(UART_DEVICE *uart_device, void *const read_buffer, uint32_t timeout)
@@ -377,6 +426,7 @@ void UD_TxCpltCallback(UART_HandleTypeDef *huart)
 	{
 		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		xSemaphoreGiveFromISR(uart_device->tx_sem, &xHigherPriorityTaskWoken);
+		sem_give_time++;
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
 }
@@ -403,8 +453,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	UD_RxCpltCallback(huart);
 
-	if(huart->Instance == huart6.Instance)
-    {
-        nrf_decode();
-    }
+	// if(huart->Instance == huart3.Instance)
+    // {
+    //     nrf_decode();
+    // }
 }
