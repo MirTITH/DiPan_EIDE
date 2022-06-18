@@ -105,7 +105,7 @@ BaseType_t F_Set_shangceng(char *pcWriteBuffer, size_t xWriteBufferLen, const ch
 	if (pcParameter != NULL) // 说明没有带参数
 	{
 		speed_zhuazi = atof(pcParameter);
-		// printf("z %g ", speed_zhuazi);
+		// UD_printf("z %g ", speed_zhuazi);
 	}
 	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 2, &xParameterStringLength);
 
