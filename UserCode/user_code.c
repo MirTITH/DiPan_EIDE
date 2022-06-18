@@ -20,6 +20,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include "uart_device.h"
 #include "TITH_time.h"
 #include <math.h>
+#include <stdio.h>
 
 #include "DJI.h"
 #include "wtr_can.h"
@@ -49,6 +50,8 @@ double speed_shengjiang = 0;
 double speed_zhuazi = 0;
 
 int ads_read_data_sw = 1; // ADS打印开关
+
+int sem_take_time = 0, sem_give_time = 0;
 
 /**
  * @brief 死区限制
@@ -114,10 +117,30 @@ double LoopSimplify_Positive(double cycle, double value)
 	return mod_value;
 }
 
+UART_DEVICE* print_device;
+
+int tx_sem_counter = 0;
+
+void TestTask(void const *argument)
+{
+	while (1)
+	{
+		tx_sem_counter = (int)uxSemaphoreGetCount(print_device->tx_sem);
+		// printf("%d ", tx_sem_counter);
+		UD_printf("udpf\n");
+		osDelay(1000);
+	}
+}
+
 void StartDefaultTask(void const *argument)
 {
-	CLI_Init(&huart6);
-	UD_SetPrintfDevice(UD_Find(&huart6));
+	
+	CLI_Init(&huart3);
+	print_device = UD_Find(&huart3);
+	UD_SetPrintfDevice(print_device);
+	
+	osThreadDef(test, TestTask, osPriorityAboveNormal, 0, 128);
+	osThreadCreate(osThread(test), NULL);
 
 	osDelay(500);
 

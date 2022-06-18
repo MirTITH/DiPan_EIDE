@@ -15,4 +15,3 @@
 #include "cmsis_os.h"
 #include "gpio.h"
 #include "usart.h"
-#include "uart_printf.h"
