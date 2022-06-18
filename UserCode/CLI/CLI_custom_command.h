@@ -30,6 +30,6 @@
  * 
  */
 #define CLI_New_Command(command_name, help_str, func, param_num)                                                                             \
-	extern BaseType_t func(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);                                        \
+	BaseType_t func(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString);                                        \
 	static const CLI_Command_Definition_t cd_##command_name = {#command_name, "" #command_name ": " #help_str " \r\n\r\n", func, param_num}; \
 	FreeRTOS_CLIRegisterCommand(&cd_##command_name);

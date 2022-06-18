@@ -12,6 +12,8 @@
 #include "CLI_custom_command.h"
 // #include "ADS1256.h"
 #include "uart_device.h"
+#include "mylib.h"
+
 
 /**
  * @brief 自定义命令在这里注册
@@ -29,15 +31,14 @@ void vRegisterCustomCLICommands(void)
 	// CLI_New_Command(ads_read_data_sw, ADS1256 read data switch, F_ads_read_data_sw, 0);
 }
 
+//-------------------------------示例命令--------------------------
 
-//-------------------------------自定义命令写在下面（记得在上面的vRegisterCustomCLICommands()中注册）--------------------------
-
-float CLI_test_var = 2.78;
+double CLI_test_var = 2.78;
 /**
  * @brief 查看与更改浮点数变量
  * 
- * @param pcWriteBuffer 待输出的内容
- * @param xWriteBufferLen pcWriteBuffer 的长度（输出内容不能超过此长度，否则数组越界）
+ * @param pcWriteBuffer 
+ * @param xWriteBufferLen 
  * @param pcCommandString 命令行输入的完整字符串
  * @return BaseType_t pdFALSE 结束执行，pdTrue 循环执行
  */
@@ -49,166 +50,25 @@ BaseType_t F_Set_CLI_test_var(char *pcWriteBuffer, size_t xWriteBufferLen, const
 
 	if (pcParameter == NULL) // 说明没有带参数
 	{
-		UD_printf("CLI_test_var == %g", CLI_test_var);
-		// UD_printf("CLI_test_var == %.15lg", CLI_test_var); //double 型数据用这行更好
+		UD_printf("CLI_test_var == %lg\n", CLI_test_var);
 	}
 	else
 	{
-		CLI_test_var = atof(pcParameter);
+		CLI_test_var = myatof(pcParameter);
 
-		UD_printf("Set CLI_test_var = %g", CLI_test_var);
-		// UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
+		UD_printf("Set CLI_test_var = %lg\n", CLI_test_var);
 	}
-
-	return pdFALSE; // 结束执行
-}
-extern double speed_zhuazi;
-BaseType_t F_Set_zhuazi(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
-{
-	BaseType_t xParameterStringLength;
-	const char *pcParameter;
-	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
-
-	if (pcParameter == NULL) // 说明没有带参数
-	{
-		// UD_printf("speed_zhuazi == %.2lg", speed_zhuazi);
-		// UD_printf("zz %.1ld\n", speed_zhuazi); //double 型数据用这行更好
-	}
-	else
-	{
-		speed_zhuazi = atof(pcParameter);
-
-		// UD_printf("Set speed_zhuazi = %.2lg", speed_zhuazi);
-		// UD_printf("zz %.1lf\n", speed_zhuazi); //double 型数据用这行更好
-	}
-
 	return pdFALSE; // 结束执行
 }
 
-extern double speed_shengjiang;
-BaseType_t F_Set_shengjiang(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
-{
-	BaseType_t xParameterStringLength;
-	const char *pcParameter;
-	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
-
-	if (pcParameter == NULL) // 说明没有带参数
-	{
-		// UD_printf("speed_shengjiang == %.2lg", speed_shengjiang);
-		// UD_printf("speed_shengjiang == %.15lg", speed_shengjiang); //double 型数据用这行更好
-	}
-	else
-	{
-		speed_shengjiang = atof(pcParameter);
-
-		// UD_printf("Set speed_shengjiang = %.2lg", speed_shengjiang);
-		// UD_printf("sj %.1lf\n", speed_shengjiang); //double 型数据用这行更好
-	}
-
-	return pdFALSE; // 结束执行
-}
-
-int sc_counter = 0;
-// double t_speed_zhuazi, t_speed_shengjiang;
-
-double myatof(char s[])
-{
-    double small=1,sum=0,falg=1;
-    int i=0;
-    //去掉遇到数字前的其他字符
-    while(!(s[i]>='0'&&s[i]<='9'||s[i]=='+'||s[i]=='-'||s[i]=='.')&&s[i]!='\0'){
-        i++;
-    }
-    //无数字字符，sum为0；
-    if(s[i]=='\0') 
-	    sum=0;
-	else{
-	    if(s[i]=='-'){             //如果读到负号用falg标记
-	        falg=-1;
-	        i++;
-	    }
-	    if(s[i]=='+'){              //读到正号则跳过
-	        i++;
-	    }
-	    //计算小数点前的数字
-	    while(s[i]>='0'&&s[i]<='9')  
-	        {
-	            sum=sum*10+(s[i]-'0');
-	            i++;
-	        }
-	    //计算小数点后数字，并统计位数，用small记录，最后除以small变小数
-	    if(s[i]=='.')
-	    {
-	    	i++;
-	    	while(s[i]>='0'&&s[i]<='9')
-	    	{
-	    		sum=sum*10+(s[i]-'0');
-	    		i++;
-	    		small*=10;
-			}
-		}
-        if(sum==0){     //如果不进行sum=0时直接进行else操作sum也会等于0但无法过测试点无任何有效数字字符时输出0.000000
-            sum=0;
-        }
-        else{           
-		    sum=falg*sum/small;
-        }
-	}
-    return sum;
-}
-
-BaseType_t F_Set_shangceng(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
-{
-	BaseType_t xParameterStringLength;
-	const char *pcParameter;
-	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
-
-	// UD_printf("enter\n", speed_zhuazi);
-
-	// HAL_Delay(2);
-
-	if (pcParameter != NULL) // 说明没有带参数
-	{
-		speed_zhuazi = myatof(pcParameter);
-		// UD_printf("z %.2lf ", speed_zhuazi);
-	}
-
-	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 2, &xParameterStringLength);
-
-	if (pcParameter != NULL) // 说明没有带参数
-	{
-		speed_shengjiang = myatof(pcParameter);
-		// UD_printf("2:%s\n", pcParameter);
-		// UD_printf("s %.2lf\n", speed_shengjiang);
-	}
-
-	return pdFALSE; // 结束执行
-}
-
-extern double epos_offset[4];
-BaseType_t F_Set_epos_offset(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
-{
-	BaseType_t xParameterStringLength;
-	const char *pcParameter;
-	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
-
-	if (pcParameter == NULL) // 说明没有带参数
-	{
-		UD_printf("epos_offset[2] == %g", epos_offset[2] * (180 / 3.141592653589793238462643383279));
-		// UD_printf("CLI_test_var == %.15lg", CLI_test_var); //double 型数据用这行更好
-	}
-	else
-	{
-		epos_offset[2] = atof(pcParameter) / (180 / 3.141592653589793238462643383279);
-
-		UD_printf("Set epos_offset[2] = %g", epos_offset[2]);
-		// UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
-	}
-
-	return pdFALSE; // 结束执行
-}
-
-
+/**
+ * @brief 用于演示返回 pdPASS 可以循环执行
+ * 
+ * @param pcWriteBuffer 
+ * @param xWriteBufferLen 
+ * @param pcCommandString 命令行输入的完整字符串
+ * @return BaseType_t 
+ */
 BaseType_t F_kamimadoka(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
 {
 	const char poem[] = "Darkness cannot drive out darkness\r\n\r\nonly light can do that\r\n\r\nHate cannot drive out hate\r\n\r\nonly love can do that.\r\n\r\nYour sin , I bear\r\n\r\n";
@@ -226,6 +86,39 @@ BaseType_t F_kamimadoka(char *pcWriteBuffer, size_t xWriteBufferLen, const char 
 	}
 
 	return pdPASS; // 循环执行
+}
+
+//-------------------------------自定义命令写在下面（记得在上面的vRegisterCustomCLICommands()中注册）--------------------------
+
+int sc_counter = 0;
+extern double speed_shengjiang;
+extern double speed_zhuazi;
+BaseType_t F_Set_shangceng(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+{
+	BaseType_t xParameterStringLength;
+	const char *pcParameter;
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
+
+	// UD_printf("enter\n", speed_zhuazi);
+
+	// HAL_Delay(2);
+
+	if (pcParameter != NULL) // 说明没有带参数
+	{
+		speed_zhuazi = myatof(pcParameter);
+		// UD_printf("z %.15lg ", speed_zhuazi);
+	}
+
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 2, &xParameterStringLength);
+
+	if (pcParameter != NULL) // 说明没有带参数
+	{
+		speed_shengjiang = myatof(pcParameter);
+		// UD_printf("s %.2lf", speed_shengjiang);
+		// UD_printf("%d\n", (sc_counter++) % 100);
+	}
+
+	return pdFALSE; // 结束执行
 }
 
 // BaseType_t F_ads_read_reg(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
