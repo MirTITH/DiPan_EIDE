@@ -146,7 +146,7 @@
     },
     "options": "null"
   },
-  "uploader": "OpenOCD",
+  "uploader": "JLink",
   "srcDirs": [
     "./.eide/deps",
     "./UserCode",
@@ -300,9 +300,14 @@
   "packDir": null,
   "uploadConfig": {
     "bin": "",
-    "target": "stm32f4x",
-    "interface": "cmsis-dap",
-    "baseAddr": "0x08000000"
+    "baseAddr": "0x08000000",
+    "cpuInfo": {
+      "vendor": "ST",
+      "cpuName": "STM32F407VE"
+    },
+    "proType": 1,
+    "speed": 8000,
+    "otherCmds": ""
   },
   "uploadConfigMap": {
     "JLink": {
@@ -319,7 +324,7 @@
     "OpenOCD": {
       "bin": "",
       "target": "stm32f4x",
-      "interface": "jlink",
+      "interface": "cmsis-dap",
       "baseAddr": "0x08000000"
     }
   },
