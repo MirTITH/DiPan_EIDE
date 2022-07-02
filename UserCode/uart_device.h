@@ -31,14 +31,16 @@ typedef struct
 {
 	UART_HandleTypeDef *huart;
 	uint8_t is_open;
+	uint16_t word_length;
 
 	char *tx_buffer;
+	uint16_t *tx_buffer_9bit;
 	uint16_t tx_buffer_length;
 	SemaphoreHandle_t tx_sem;
 	BaseType_t (*TxFunc)(UART_HandleTypeDef *huart, const char *pData, uint16_t size);
 	BaseType_t (*TxFuncBlock)(UART_HandleTypeDef *huart, const char *pData, uint16_t size, uint32_t timeout);
 
-	char rx_temp_char;
+	uint16_t rx_temp_buffer;
 	uint16_t rx_queue_length;
 	QueueHandle_t rx_queue;
 	BaseType_t (*RxFunc)(UART_HandleTypeDef *huart, char *pData, uint16_t size);

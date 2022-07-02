@@ -207,22 +207,52 @@ UART_DEVICE *UD_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length, uint16
 
 			memset(uart_devices[i], 0, sizeof(*uart_devices[i])); // 清零结构体
 
+			if ((huart->Init.WordLength == UART_WORDLENGTH_9B) && (huart->Init.Parity == UART_PARITY_NONE))
+			{
+				uart_devices[i]->word_length = 9;
+			}
+			else
+			{
+				uart_devices[i]->word_length = 8;
+			}
+
 			// 发送缓冲区
 			uart_devices[i]->tx_buffer_length = tx_buffer_length;
 			if (uart_devices[i]->tx_buffer_length > 0) // 使用发送缓冲区
 			{
-				uart_devices[i]->tx_buffer = pvPortMalloc(tx_buffer_length);
-				if (uart_devices[i]->tx_buffer == NULL) // 内存不足
+				switch (uart_devices[i]->word_length)
 				{
-					// 删除创建了一半的设备
+				case 8:
+					uart_devices[i]->tx_buffer_9bit = NULL;
+					uart_devices[i]->tx_buffer = pvPortMalloc(tx_buffer_length * sizeof(char));
+					if (uart_devices[i]->tx_buffer == NULL) // 内存不足
+					{
+						// 删除创建了一半的设备
+						UD_Del(uart_devices[i]);
+						return NULL;
+					}
+					break;
+				case 9:
+					uart_devices[i]->tx_buffer = NULL;
+					uart_devices[i]->tx_buffer_9bit = pvPortMalloc(tx_buffer_length * sizeof(uint16_t));
+					if (uart_devices[i]->tx_buffer_9bit == NULL) // 内存不足
+					{
+						// 删除创建了一半的设备
+						UD_Del(uart_devices[i]);
+						return NULL;
+					}
+					break;
+				default:
 					UD_Del(uart_devices[i]);
 					return NULL;
+					break;
 				}
 			}
 			else // 不使用发送缓冲区
 			{
 				uart_devices[i]->tx_buffer_length = 0;
 				uart_devices[i]->tx_buffer = NULL;
+				uart_devices[i]->tx_buffer_9bit = NULL;
 			}
 
 			// 发送信号量
@@ -238,7 +268,22 @@ UART_DEVICE *UD_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length, uint16
 			uart_devices[i]->rx_queue_length = rx_queue_length;
 			if (uart_devices[i]->rx_queue_length > 0) // 使用接收消息队列
 			{
-				uart_devices[i]->rx_queue = xQueueCreate(uart_devices[i]->rx_queue_length, (unsigned portBASE_TYPE)sizeof(char));
+				switch (uart_devices[i]->word_length)
+				{
+				case 8:
+					uart_devices[i]->rx_queue = xQueueCreate(uart_devices[i]->rx_queue_length, (unsigned portBASE_TYPE)sizeof(char));
+					break;
+				
+				case 9:
+					uart_devices[i]->rx_queue = xQueueCreate(uart_devices[i]->rx_queue_length, (unsigned portBASE_TYPE)sizeof(uint16_t));
+					break;
+				
+				default:
+					UD_Del(uart_devices[i]);
+					return NULL;
+					break;
+				}
+				
 				if (uart_devices[i]->rx_queue == NULL) // 内存不足
 				{
 					// 删除创建了一半的设备
@@ -287,6 +332,10 @@ UART_DEVICE *UD_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length, uint16
 			osThreadDef(uart_device, UD_task, osPriorityAboveNormal, 0, 128);
 			uart_devices[i]->thread_id = osThreadCreate(osThread(uart_device), uart_devices[i]);
 
+			// 启动接受中断
+			uart_devices[i]->RxFunc(uart_devices[i]->huart, (char*)&uart_devices[i]->rx_temp_buffer, 1);
+
+			UD_Open(uart_devices[i]);
 			return uart_devices[i];
 		}
 	}
@@ -322,7 +371,7 @@ void UD_Del(UART_DEVICE *uart_device)
 
 	// 接收相关
 	uart_device->rx_queue_length = 0;
-	uart_device->rx_temp_char = 0;
+	uart_device->rx_temp_buffer = 0;
 	uart_device->TxFunc = NULL;
 	uart_device->TxFuncBlock = NULL;
 	if (uart_device->rx_queue != NULL)
@@ -372,8 +421,23 @@ BaseType_t UD_WriteStrCopy(UART_DEVICE *uart_device, const char *str, uint16_t l
 		if (str_len > uart_device->tx_buffer_length)
 			str_len = uart_device->tx_buffer_length;
 
-		memcpy(uart_device->tx_buffer, str, str_len);
-		uart_device->TxFunc(uart_device->huart, uart_device->tx_buffer, str_len);
+		switch (uart_device->word_length)
+		{
+		case 8:
+			memcpy(uart_device->tx_buffer, str, str_len);
+			uart_device->TxFunc(uart_device->huart, uart_device->tx_buffer, str_len);
+			break;
+
+		case 9:
+			memcpy(uart_device->tx_buffer_9bit, (const uint16_t *)str, str_len);
+			uart_device->TxFunc(uart_device->huart, (char*)uart_device->tx_buffer_9bit, str_len);
+			break;
+
+		default:
+			return pdFAIL;
+			break;
+		}
+		
 		return pdPASS;
 	}
 
@@ -433,13 +497,13 @@ void UD_RxCpltCallback(UART_HandleTypeDef *huart)
 		if (uart_device->is_open != pdFALSE)
 		{
 			BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-			xQueueSendFromISR(uart_device->rx_queue, (uint8_t *)&uart_device->rx_temp_char, &xHigherPriorityTaskWoken);
-			uart_device->RxFunc(uart_device->huart, &uart_device->rx_temp_char, 1);
+			xQueueSendFromISR(uart_device->rx_queue, &uart_device->rx_temp_buffer, &xHigherPriorityTaskWoken);
+			uart_device->RxFunc(uart_device->huart, (char*)&uart_device->rx_temp_buffer, 1);
 			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 		}
 		else
 		{
-			uart_device->RxFunc(uart_device->huart, &uart_device->rx_temp_char, 1);
+			uart_device->RxFunc(uart_device->huart, (char*)&uart_device->rx_temp_buffer, 1);
 		}
 	}
 }
