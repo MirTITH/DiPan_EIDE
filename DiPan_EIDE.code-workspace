@@ -16,14 +16,15 @@
             "*.c++": "cpp",
             "*.cpp": "cpp",
             "*.cxx": "cpp",
-            "*.cc": "cpp"
+            "*.cc": "cpp",
+            "cstdlib": "c"
         },
         "[yaml]": {
             "editor.insertSpaces": true,
             "editor.tabSize": 4,
             "editor.autoIndent": "advanced"
         },
-        "EIDE.SerialPortMonitor.BaudRate": 921600
+        "EIDE.SerialPortMonitor.BaudRate": 9600
     },
     "extensions": {
         "recommendations": [

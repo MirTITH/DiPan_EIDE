@@ -92,9 +92,9 @@ void DJI_Update(DJI_t *motor, uint8_t* fdbData){
 	motor->Calculate.RotorAngle_0_360_Log[LAST]  =   motor->Calculate.RotorAngle_0_360_Log[NOW];
 	motor->Calculate.RotorAngle_0_360_Log[NOW]   =   motor->FdbData.RotorAngle_0_360;
 	/* 电机圈数更新        */
-	if(motor->Calculate.RotorAngle_0_360_Log[NOW] -  motor->Calculate.RotorAngle_0_360_Log[LAST] > (180.0))
+	if(motor->Calculate.RotorAngle_0_360_Log[NOW] -  motor->Calculate.RotorAngle_0_360_Log[LAST] > 180.0f)
 		motor->Calculate.RotorRound--;
-	else if(motor->Calculate.RotorAngle_0_360_Log[NOW] - motor->Calculate.RotorAngle_0_360_Log[LAST] < -(180.0))
+	else if(motor->Calculate.RotorAngle_0_360_Log[NOW] - motor->Calculate.RotorAngle_0_360_Log[LAST] < -180.0f)
 		motor->Calculate.RotorRound++;
 	/* 电机输出轴角度      */
 	motor->AxisData.AxisAngle_inDegree  =  motor->Calculate.RotorRound * 360.0f ;

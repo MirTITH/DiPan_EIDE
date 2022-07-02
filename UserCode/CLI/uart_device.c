@@ -21,6 +21,37 @@ static UART_DEVICE *uart_devices[MAX_UartDevice_Num] = {NULL};
 
 UART_DEVICE *printf_uart_device = NULL;
 
+int fix_counter = 0;
+
+void UD_task(void const *argument)
+{
+	UART_DEVICE *uart_device = (UART_DEVICE *)argument;
+	int counter = 0;
+	while (1)
+	{
+		// 串口传输完成有极小概率不进入回调函数，为防止卡串口，在这里给信号量
+		osDelay(10);
+		if(uart_device->is_open && uxSemaphoreGetCount(uart_device->tx_sem) == 0)
+		{
+			counter++;
+		}
+		else
+		{
+			counter = 0;
+		}
+
+		if (counter > 3)
+		{
+			counter = 0;
+			if (uart_device->huart->gState == HAL_UART_STATE_READY)
+			{
+				xSemaphoreGive(uart_device->tx_sem);
+			}
+			fix_counter++;
+		}
+	}
+}
+
 void UD_SetPrintfDevice(UART_DEVICE *uart_device)
 {
 	printf_uart_device = uart_device;
@@ -245,6 +276,9 @@ UART_DEVICE *UD_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length, uint16
 				break;
 			}
 
+			osThreadDef(uart_device, UD_task, osPriorityAboveNormal, 0, 128);
+			uart_devices[i]->thread_id = osThreadCreate(osThread(uart_device), uart_devices[i]);
+
 			return uart_devices[i];
 		}
 	}
@@ -256,6 +290,8 @@ void UD_Del(UART_DEVICE *uart_device)
 {
 	if (uart_device == NULL)
 		return;
+
+	vTaskDelete(uart_device->thread_id);
 
 	uart_device->is_open = pdFALSE;
 	uart_device->huart = NULL;
@@ -403,8 +439,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	UD_RxCpltCallback(huart);
 
-	if(huart->Instance == huart6.Instance)
-    {
-        nrf_decode();
-    }
+	// if(huart->Instance == huart3.Instance)
+    // {
+    //     nrf_decode();
+    // }
 }

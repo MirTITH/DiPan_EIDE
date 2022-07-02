@@ -77,8 +77,8 @@ extern void vRegisterCustomCLICommands( void );
 
 /* Const messages output by the command console. */
 static const char * const pcWelcomeMessage = "FreeRTOS command server.\r\n\r\n---WTRobot---\r\n\r\nType Help to view a list of registered commands.\r\n[Press ENTER to execute the previous command again]\r\n>";
-static const char * const pcEndOfOutputMessage = "\r\n>";
-static const char * const pcNewLine = "\r\n";
+// static const char * const pcEndOfOutputMessage = "\r\n>";
+// static const char * const pcNewLine = "\r\n";
 
 /* Used to guard access to the UART in case messages are sent to the UART from
 more than one task. */
@@ -129,7 +129,7 @@ static void prvUARTCommandConsoleTask( void *pvParameters )
 		if( cRxedChar == '\n' || cRxedChar == '\r' )
 		{
 			/* Just to space the output from the input. */
-			vSerialPutString( xPort, ( signed char * ) pcNewLine, ( unsigned short ) strlen( pcNewLine ) );
+			// vSerialPutString( xPort, ( signed char * ) pcNewLine, ( unsigned short ) strlen( pcNewLine ) );
 
 			/* See if the command is empty, indicating that the last command
 			is to be executed again. */
@@ -161,7 +161,7 @@ static void prvUARTCommandConsoleTask( void *pvParameters )
 			ucInputIndex = 0;
 			memset( cInputString, 0x00, cmdMAX_INPUT_SIZE );
 
-			vSerialPutString( xPort, ( signed char * ) pcEndOfOutputMessage, ( unsigned short ) strlen( pcEndOfOutputMessage ) );
+			// vSerialPutString( xPort, ( signed char * ) pcEndOfOutputMessage, ( unsigned short ) strlen( pcEndOfOutputMessage ) );
 		}
 		else
 		{

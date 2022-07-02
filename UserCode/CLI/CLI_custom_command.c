@@ -13,6 +13,7 @@
 #include "ADS1256.h"
 #include "uart_device.h"
 
+
 /**
  * @brief 自定义命令在这里注册
  * 
@@ -20,21 +21,19 @@
 void vRegisterCustomCLICommands(void)
 {
 	CLI_New_Command(testvar, set CLI_test_var, F_Set_CLI_test_var, -1);
-	CLI_New_Command(eposo, set epos_offset, F_Set_epos_offset, -1);
+	CLI_New_Command(sc, shengjiang zhuazi, F_Set_shangceng, -1);
 	CLI_New_Command(kamimadoka, kami.im, F_kamimadoka, 0);
 	CLI_New_Command(ads_read_reg, Read all registers of ADS1256, F_ads_read_reg, 0);
-	CLI_New_Command(ads_read_data_sw, ADS1256 read data switch, F_ads_read_data_sw, 0);
 }
 
+//-------------------------------示例命令--------------------------
 
-//-------------------------------自定义命令写在下面（记得在上面的vRegisterCustomCLICommands()中注册）--------------------------
-
-float CLI_test_var = 2.78;
+double CLI_test_var = 2.78;
 /**
  * @brief 查看与更改浮点数变量
  * 
- * @param pcWriteBuffer 待输出的内容
- * @param xWriteBufferLen pcWriteBuffer 的长度（输出内容不能超过此长度，否则数组越界）
+ * @param pcWriteBuffer 
+ * @param xWriteBufferLen 
  * @param pcCommandString 命令行输入的完整字符串
  * @return BaseType_t pdFALSE 结束执行，pdTrue 循环执行
  */
@@ -46,44 +45,25 @@ BaseType_t F_Set_CLI_test_var(char *pcWriteBuffer, size_t xWriteBufferLen, const
 
 	if (pcParameter == NULL) // 说明没有带参数
 	{
-		UD_printf("CLI_test_var == %g", CLI_test_var);
-		// UD_printf("CLI_test_var == %.15lg", CLI_test_var); //double 型数据用这行更好
+		UD_printf("CLI_test_var == %lg\n", CLI_test_var);
 	}
 	else
 	{
 		CLI_test_var = atof(pcParameter);
 
-		UD_printf("Set CLI_test_var = %g", CLI_test_var);
-		// UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
+		UD_printf("Set CLI_test_var = %lg\n", CLI_test_var);
 	}
-
 	return pdFALSE; // 结束执行
 }
 
-extern double epos_offset[4];
-BaseType_t F_Set_epos_offset(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
-{
-	BaseType_t xParameterStringLength;
-	const char *pcParameter;
-	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
-
-	if (pcParameter == NULL) // 说明没有带参数
-	{
-		UD_printf("epos_offset[2] == %g", epos_offset[2] * (180 / 3.141592653589793238462643383279));
-		// UD_printf("CLI_test_var == %.15lg", CLI_test_var); //double 型数据用这行更好
-	}
-	else
-	{
-		epos_offset[2] = atof(pcParameter) / (180 / 3.141592653589793238462643383279);
-
-		UD_printf("Set epos_offset[2] = %g", epos_offset[2]);
-		// UD_printf("Set CLI_test_var = %.15lg", CLI_test_var); //double 型数据用这行更好
-	}
-
-	return pdFALSE; // 结束执行
-}
-
-
+/**
+ * @brief 用于演示返回 pdPASS 可以循环执行
+ * 
+ * @param pcWriteBuffer 
+ * @param xWriteBufferLen 
+ * @param pcCommandString 命令行输入的完整字符串
+ * @return BaseType_t 
+ */
 BaseType_t F_kamimadoka(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
 {
 	const char poem[] = "Darkness cannot drive out darkness\r\n\r\nonly light can do that\r\n\r\nHate cannot drive out hate\r\n\r\nonly love can do that.\r\n\r\nYour sin , I bear\r\n\r\n";
@@ -103,6 +83,35 @@ BaseType_t F_kamimadoka(char *pcWriteBuffer, size_t xWriteBufferLen, const char 
 	return pdPASS; // 循环执行
 }
 
+//-------------------------------自定义命令写在下面（记得在上面的vRegisterCustomCLICommands()中注册）--------------------------
+
+extern double speed_shengjiang;
+extern double speed_zhuazi;
+BaseType_t F_Set_shangceng(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+{
+	BaseType_t xParameterStringLength;
+	const char *pcParameter;
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
+
+	// UD_printf("enter\n", speed_zhuazi);
+
+	// HAL_Delay(2);
+
+	if (pcParameter != NULL) // 说明没有带参数
+	{
+		speed_zhuazi = atof(pcParameter);
+		// UD_printf("z %g ", speed_zhuazi);
+	}
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 2, &xParameterStringLength);
+
+	if (pcParameter != NULL) // 说明没有带参数
+	{
+		speed_shengjiang = atof(pcParameter);
+		// UD_printf("s %g\n", speed_shengjiang);
+	}
+	return pdFALSE; // 结束执行
+}
+
 BaseType_t F_ads_read_reg(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
 {
 	ADS1256_REG ads1256_reg;
@@ -115,19 +124,3 @@ BaseType_t F_ads_read_reg(char *pcWriteBuffer, size_t xWriteBufferLen, const cha
 	return pdFALSE; // 结束执行
 }
 
-extern int ads_read_data_sw;
-BaseType_t F_ads_read_data_sw(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
-{
-	if (ads_read_data_sw == 0)
-	{
-		UD_printf("Set ads_read_data_sw = 1\n");
-		ads_read_data_sw = 1;
-	}
-	else
-	{
-		UD_printf("Set ads_read_data_sw = 0\n");
-		ads_read_data_sw = 0;
-	}
-
-	return pdFALSE; // 结束执行
-}
