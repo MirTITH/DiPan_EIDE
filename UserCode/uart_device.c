@@ -152,7 +152,6 @@ BaseType_t UD_Open(UART_DEVICE *uart_device)
 		return pdFAIL;
 
 	xSemaphoreGive(uart_device->tx_sem);
-	uart_device->RxFunc(uart_device->huart, &uart_device->rx_temp_char, 1);
 	uart_device->is_open = pdTRUE;
 	return pdPASS;
 }
@@ -161,8 +160,12 @@ void UD_Close(UART_DEVICE *uart_device)
 {
 	if (uart_device == NULL)
 		return;
-	xSemaphoreTake(uart_device->tx_sem, portMAX_DELAY);
-	uart_device->is_open = pdFALSE;
+
+	if(uart_device->is_open)
+	{
+		uart_device->is_open = pdFALSE;
+		xSemaphoreTake(uart_device->tx_sem, 1000);
+	}
 }
 
 UART_DEVICE *UD_Find(UART_HandleTypeDef *huart)
@@ -172,6 +175,8 @@ UART_DEVICE *UD_Find(UART_HandleTypeDef *huart)
 
 	for (int i = 0; i < MAX_UartDevice_Num; i++)
 	{
+		if (uart_devices[i] == NULL) continue;
+		
 		if (uart_devices[i]->huart->Instance == huart->Instance)
 		{
 			return uart_devices[i];
@@ -184,6 +189,9 @@ UART_DEVICE *UD_Find(UART_HandleTypeDef *huart)
 UART_DEVICE *UD_New(UART_HandleTypeDef *huart, uint16_t tx_buffer_length, uint16_t rx_queue_length, UartDevice_Mode tx_mode, UartDevice_Mode rx_mode)
 {
 	if (huart == NULL)
+		return NULL;
+
+	if (UD_Find(huart) != NULL)
 		return NULL;
 
 	for (int i = 0; i < MAX_UartDevice_Num; i++)
@@ -292,8 +300,9 @@ void UD_Del(UART_DEVICE *uart_device)
 		return;
 
 	vTaskDelete(uart_device->thread_id);
+	
+	UD_Close(uart_device);
 
-	uart_device->is_open = pdFALSE;
 	uart_device->huart = NULL;
 
 	// 发送相关
@@ -327,11 +336,9 @@ void UD_Del(UART_DEVICE *uart_device)
 	{
 		if (uart_devices[i] == uart_device)
 		{
-			vPortFree(uart_devices[i]);
 			uart_devices[i] = NULL;
 		}
 	}
-	uart_device = NULL;
 }
 
 BaseType_t UD_WriteStr(UART_DEVICE *uart_device, const char *str, uint16_t length, uint32_t timeout)
@@ -421,26 +428,18 @@ void UD_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	UART_DEVICE *uart_device = UD_Find(huart);
 
-	if (uart_device != NULL && uart_device->is_open != pdFALSE)
+	if (uart_device != NULL)
 	{
-		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-		xQueueSendFromISR(uart_device->rx_queue, (uint8_t *)&uart_device->rx_temp_char, &xHigherPriorityTaskWoken);
-		uart_device->RxFunc(uart_device->huart, &uart_device->rx_temp_char, 1);
-		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+		if (uart_device->is_open != pdFALSE)
+		{
+			BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+			xQueueSendFromISR(uart_device->rx_queue, (uint8_t *)&uart_device->rx_temp_char, &xHigherPriorityTaskWoken);
+			uart_device->RxFunc(uart_device->huart, &uart_device->rx_temp_char, 1);
+			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+		}
+		else
+		{
+			uart_device->RxFunc(uart_device->huart, &uart_device->rx_temp_char, 1);
+		}
 	}
-}
-
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-	UD_TxCpltCallback(huart);
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	UD_RxCpltCallback(huart);
-
-	// if(huart->Instance == huart3.Instance)
-    // {
-    //     nrf_decode();
-    // }
 }
