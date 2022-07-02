@@ -303,7 +303,7 @@
         "baseAddr": "0x08000000",
         "cpuInfo": {
           "vendor": "ST",
-          "cpuName": "STM32F103C8"
+          "cpuName": "STM32F407VE"
         },
         "proType": 1,
         "speed": 8000,
