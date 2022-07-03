@@ -24,7 +24,7 @@
             "editor.tabSize": 4,
             "editor.autoIndent": "advanced"
         },
-        "EIDE.SerialPortMonitor.BaudRate": 9600,
+        "EIDE.SerialPortMonitor.BaudRate": 115200,
         "stm32-for-vscode.openOCDPath": false
     },
     "extensions": {

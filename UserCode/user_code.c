@@ -31,11 +31,13 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
 extern int fix_counter;
 
+uint16_t rx_data[4] = {0};
+
 void StartDefaultTask(void const *argument)
 {
 	
-	CLI_Init(&huart3);
-	UD_SetPrintfDevice(UD_Find(&huart3));
+	CLI_Init(&huart2);
+	UD_SetPrintfDevice(UD_Find(&huart2));
 
 	// UART_DEVICE* ud_9bit = UD_New(&huart1, 64, 64, UartDevice_IT, UartDevice_IT);
 	// UD_Open(ud_9bit);
@@ -44,11 +46,13 @@ void StartDefaultTask(void const *argument)
 
 	uint8_t data8[5] = {0x22, 0x11, 0x23, 0xf1,0x00};
 
-	uint16_t data16[4] = {0x155, 0x000, 0x1ff, 0x022};
+	uint16_t data16[4] = {0x001, 0x003, 0x107, 0x177};
+
+	HAL_UART_Receive_IT(&huart6, (uint8_t*)rx_data, 4);
 
 	// uint8_t data_with_crc[4+1];
 
-	uint8_t rx_data[8] = {0};
+	
 
 	// ADS1256_Init();
 
@@ -70,10 +74,10 @@ void StartDefaultTask(void const *argument)
 		// UD_Read(ud_9bit, &rx_data, portMAX_DELAY);
 
 
-		HAL_UART_Receive_IT(&huart1, (uint8_t*)rx_data, 4);
-		HAL_UART_Transmit(&huart1, (uint8_t*)data16, 4, 1000);
+		
+		HAL_UART_Transmit(&huart6, (uint8_t*)data16, 4, 1000);
 
-		for (int i = 0; i < 8; i++)
+		for (int i = 0; i < 4; i++)
 		{
 			UD_printf("%x ", rx_data[i]);
 		}

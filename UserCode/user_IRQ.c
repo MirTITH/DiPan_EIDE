@@ -13,14 +13,16 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	UD_TxCpltCallback(huart);
 }
 
+extern uint16_t rx_data[4];
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	UD_RxCpltCallback(huart);
 
-	// if(huart->Instance == huart3.Instance)
-    // {
-    //     nrf_decode();
-    // }
+	if(huart->Instance == huart6.Instance)
+    {
+        HAL_UART_Receive_IT(&huart6, (uint8_t*)rx_data, 4);
+    }
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)

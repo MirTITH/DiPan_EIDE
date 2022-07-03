@@ -223,7 +223,7 @@
   "uploadConfig": {
     "bin": "",
     "target": "stm32f4x",
-    "interface": "cmsis-dap",
+    "interface": "jlink_sw",
     "baseAddr": "0x08000000"
   },
   "uploadConfigMap": {

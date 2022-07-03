@@ -15,7 +15,7 @@
 #include "crcLib.h"
 #include <string.h>
 
-#define Uart9b_huart huart1
+#define Uart9b_huart huart6
 #define Uart9b_rx_data_MAXsize 255
 
 uint16_t rx_head_buff[2];
@@ -50,7 +50,7 @@ int Uart9bCom_HeadCheck(uint16_t* head_buff)
 
 void Uart9bCom_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	if (huart->Instance == huart1.Instance)
+	if (huart->Instance == Uart9b_huart.Instance)
 	{
 		if (rx_data_start_flag)
 		{ // 数据接收完毕
