@@ -17,13 +17,13 @@ void nrf_Transmit_init()
 //发送单片机发送函数，循环调用
 void send()
 {
-    HAL_UART_Transmit(&huart2,nrfDataBag.raw,BAG_LENGTH,50);
+    HAL_UART_Transmit(&huart3,nrfDataBag.raw,BAG_LENGTH,50);
 } 
 
 //接收单片机初始化
 void nrf_receive_init()
 {
-    HAL_UART_Receive_DMA(&huart2,nrfReceive,BAG_LENGTH*2);
+    HAL_UART_Receive_DMA(&huart3,nrfReceive,BAG_LENGTH*2);
 }
 
 //在回调函数中进行解码

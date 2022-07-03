@@ -65,9 +65,8 @@
     },
     "options": "null"
   },
-  "uploader": "JLink",
+  "uploader": "OpenOCD",
   "srcDirs": [
-    "./.eide/deps",
     "./UserCode",
     "./GCC_files",
     "./Core"
@@ -112,6 +111,9 @@
               },
               {
                 "path": "Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c"
+              },
+              {
+                "path": "Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_crc.c"
               },
               {
                 "path": "Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c"
@@ -212,21 +214,17 @@
   },
   "excludeList": [
     "<virtual_root>/Middlewares/FreeRTOS/port.c",
-    "<virtual_root>/Application/MDK-ARM"
+    "<virtual_root>/Application/MDK-ARM",
+    "<virtual_root>/Drivers/STM32F4xx_HAL_Driver/stm32f4xx_hal_crc.c"
   ],
   "outDir": "build",
   "deviceName": null,
   "packDir": null,
   "uploadConfig": {
     "bin": "",
-    "baseAddr": "0x08000000",
-    "cpuInfo": {
-      "vendor": "ST",
-      "cpuName": "STM32F407VE"
-    },
-    "proType": 1,
-    "speed": 8000,
-    "otherCmds": ""
+    "target": "stm32f4x",
+    "interface": "cmsis-dap",
+    "baseAddr": "0x08000000"
   },
   "uploadConfigMap": {
     "JLink": {
@@ -234,7 +232,7 @@
       "baseAddr": "0x08000000",
       "cpuInfo": {
         "vendor": "ST",
-        "cpuName": "STM32F103C8"
+        "cpuName": "STM32F407VE"
       },
       "proType": 1,
       "speed": 8000,
