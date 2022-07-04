@@ -214,8 +214,7 @@
   },
   "excludeList": [
     "<virtual_root>/Middlewares/FreeRTOS/port.c",
-    "<virtual_root>/Application/MDK-ARM",
-    "<virtual_root>/Drivers/STM32F4xx_HAL_Driver/stm32f4xx_hal_crc.c"
+    "<virtual_root>/Application/MDK-ARM"
   ],
   "outDir": "build",
   "deviceName": null,
@@ -223,7 +222,7 @@
   "uploadConfig": {
     "bin": "",
     "target": "stm32f4x",
-    "interface": "jlink_sw",
+    "interface": "cmsis-dap",
     "baseAddr": "0x08000000"
   },
   "uploadConfigMap": {

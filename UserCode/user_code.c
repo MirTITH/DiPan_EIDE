@@ -27,7 +27,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include "Caculate.h"
 #include "vesc.h"
 #include "kinematic_calc.h"
-// #include "nrf_com.h"
+#include "uart_com.h"
 
 extern int fix_counter;
 
@@ -44,9 +44,9 @@ void StartDefaultTask(void const *argument)
 
 	// uint32_t data = 0x221123F1;
 
-	uint8_t data8[5] = {0x22, 0x11, 0x23, 0xf1,0x00};
+	// uint8_t data8[5] = {0x22, 0x11, 0x23, 0xf1,0x00};
 
-	uint16_t data16[4] = {0x001, 0x003, 0x107, 0x177};
+	// uint16_t data16[4] = {0x001, 0x003, 0x107, 0x177};
 
 	HAL_UART_Receive_IT(&huart6, (uint8_t*)rx_data, 4);
 
@@ -58,6 +58,7 @@ void StartDefaultTask(void const *argument)
 
 	while (1)
 	{
+		test();
 		// ADS1256_UpdateDiffData();
 		// UD_printf("channel:");
 		// for (int i = 0; i < 4; i++)
@@ -75,14 +76,14 @@ void StartDefaultTask(void const *argument)
 
 
 		
-		HAL_UART_Transmit(&huart6, (uint8_t*)data16, 4, 1000);
+		// HAL_UART_Transmit(&huart6, (uint8_t*)data16, 4, 1000);
 
-		for (int i = 0; i < 4; i++)
-		{
-			UD_printf("%x ", rx_data[i]);
-		}
+		// for (int i = 0; i < 4; i++)
+		// {
+		// 	UD_printf("%x ", rx_data[i]);
+		// }
 		
-		UD_printf("\n");
+		// UD_printf("\n");
 
 		// UD_printf("crc:%x\n", crc8(data8, 4));
 

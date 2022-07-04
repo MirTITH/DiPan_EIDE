@@ -25,7 +25,8 @@
             "editor.autoIndent": "advanced"
         },
         "EIDE.SerialPortMonitor.BaudRate": 115200,
-        "stm32-for-vscode.openOCDPath": false
+        "stm32-for-vscode.openOCDPath": false,
+        "cortex-debug.variableUseNaturalFormat": false
     },
     "extensions": {
         "recommendations": [
