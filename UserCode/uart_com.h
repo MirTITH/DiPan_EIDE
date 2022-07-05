@@ -18,10 +18,8 @@ typedef struct
 	int8_t test_int82;
 } UC_Data_t;
 
-// // 要发送的数据
-// extern UC_Data_t uc_send_data;
-
-// 接收到的数据
-extern UC_Data_t uc_rcv_data;
-
 void test();
+
+void UC_Rcv_Init(UART_HandleTypeDef* huart, UC_Data_t* data_to_receive, uint8_t ID);
+
+void UC_Send(uint8_t ID, UART_HandleTypeDef *huart, UC_Data_t *data_to_send);
