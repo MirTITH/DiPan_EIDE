@@ -2,7 +2,7 @@
  * @file uart_com.c
  * @author TITH (1023515576@qq.com)
  * @brief 串口数据包通讯
- * @version 0.1
+ * @version 0.2
  * @date 2022-07-04
  *
  * @copyright Copyright (c) 2022
@@ -38,14 +38,8 @@ typedef struct __attribute__((packed))
 #define DATA_REGION_SIZE (sizeof(UC_Data_t) + RESERVEDATA_SIZE)										 // 数据区大小
 #define DATA_CRC_REGION_SIZE sizeof(((Data_Packet_t *)0)->_DATA_CRC)								 // 数据校验区大小
 
-#define FRAME_HEAD_DEFINE \
-	{                     \
-		0xAA, 0x93        \
-	}
-#define FRAME_TAIL_DEFINE \
-	{                     \
-		0xBB, 0x00        \
-	}
+#define FRAME_HEAD_DEFINE {0xAA, 0x93}
+#define FRAME_TAIL_DEFINE {0xBB, 0x00}
 
 const uint8_t FRAME_HEAD[] = FRAME_HEAD_DEFINE; // 帧头
 const uint8_t FRAME_TAIL[] = FRAME_TAIL_DEFINE; // 帧尾
@@ -71,6 +65,10 @@ struct
 } UC_Var = {
 	.tx_buffer.frame_head = FRAME_HEAD_DEFINE,
 	.tx_buffer.frame_tail = FRAME_TAIL_DEFINE};
+
+
+UC_Debug_t UC_debug_data = {0}; // debug 时用的数据
+
 
 /**
  * @brief 检查数据包校验是否通过
@@ -108,18 +106,23 @@ void DataPacket_Pack(uint8_t ID, Data_Packet_t *packet, UC_Data_t *data_to_pack)
  */
 int DataPacket_Unpack(Data_Packet_t *packet)
 {
+	UC_debug_data.rx_pkt_total++;
 	if (UC_Var.rx_dest_data != NULL)
 	{
 		if (memcmp(packet, UC_Var.rx_exp_info, INFO_REGION_SIZE) != 0)
 			return 3;
 
+		UC_debug_data.rx_pkt_id_valid++;
+
 		if (DataPacket_Check(packet) == true)
 		{
+			UC_debug_data.rx_pkt_data_valid++;
 			memcpy(UC_Var.rx_dest_data, &packet->effective_data, sizeof(UC_Data_t));
 			return 0;
 		}
 		else
 		{
+			UC_debug_data.rx_pkt_data_invalid++;
 			return 1;
 		}
 	}
@@ -168,16 +171,10 @@ void Frame_MoveForwardHead(Frame_t *frame)
 
 void Frame_Send(UART_HandleTypeDef *huart, Frame_t *frame)
 {
-	HAL_UART_Transmit(huart, (uint8_t *)frame, sizeof(*frame), portMAX_DELAY);
+	HAL_UART_Transmit(huart, (uint8_t *)frame, sizeof(Frame_t), portMAX_DELAY);
 }
 
-/**
- * @brief 串口通讯接收初始化（只发送不需要执行此函数）
- *
- * @param huart 接收数据的串口句柄（传入 NULL 表示去初始化，即不再接收）
- * @param data_to_receive 接收到的数据会写到这里（去初始化时传 NULL）
- */
-void UC_Rcv_Init(uint8_t ID, UART_HandleTypeDef *huart, UC_Data_t *data_to_receive)
+void UC_Rcv_Start(uint8_t ID, UART_HandleTypeDef *huart, UC_Data_t *data_to_receive)
 {
 	if (huart != NULL)
 	{
@@ -198,22 +195,12 @@ void UC_Rcv_Init(uint8_t ID, UART_HandleTypeDef *huart, UC_Data_t *data_to_recei
 	}
 }
 
-/**
- * @brief 发送数据
- *
- * @param data_to_send 要发送的数据
- */
 void UC_Send(uint8_t ID, UART_HandleTypeDef *huart, UC_Data_t *data_to_send)
 {
 	DataPacket_Pack(ID, &UC_Var.tx_buffer.data, data_to_send);
-	// UD_printf("crc check: %d\n", DataPacket_Check(&pkg_to_send));
 	Frame_Send(huart, &UC_Var.tx_buffer);
 }
 
-/**
- * @brief 串口接收回调函数
- *
- */
 void UC_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if (UC_Var.rx_huart == NULL)
@@ -230,6 +217,7 @@ void UC_RxCpltCallback(UART_HandleTypeDef *huart)
 			}
 			else
 			{
+				UC_debug_data.rx_frame_head_loss++;
 				UC_Var.rx_head_aligned = false;
 				memset(UC_Var.rx_buffer.frame_head, 0, sizeof(UC_Var.rx_buffer.frame_head));
 				HAL_UART_Receive_IT(UC_Var.rx_huart, ((uint8_t *)&UC_Var.rx_buffer.frame_head) + sizeof(FRAME_HEAD) - 1, 1);
@@ -237,9 +225,11 @@ void UC_RxCpltCallback(UART_HandleTypeDef *huart)
 		}
 		else
 		{
+			UC_debug_data.rx_frame_head_unaligned++;
 			if (Frame_CheckHead(&UC_Var.rx_buffer))
 			{
 				UC_Var.rx_head_aligned = true;
+				UC_debug_data.rx_frame_head_realigned++;
 				HAL_UART_Receive_IT(UC_Var.rx_huart, (uint8_t *)&(UC_Var.rx_buffer.data), sizeof(Frame_t) - sizeof(FRAME_HEAD));
 			}
 			else
@@ -251,26 +241,20 @@ void UC_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
 }
 
-void test()
+#ifdef UC_DEBUG
+#include "uart_device.h"
+void UC_print_debug_data()
 {
-	// UC_Data_t test_data = {
-	// 	.test_int8 = 0x22,
-	// 	.test_int82 = 0x33};
-	// UD_printf("pkg size: %d ", sizeof(Data_Packet_t));
-	// UD_printf("data size: %d\n", sizeof(UC_Data_t));
-
-	// UC_Send(1, &huart6, &test_data);
-
-	// UD_printf("pos:  ");
-
-	// for (int i = 0; i < sizeof(pkg_to_send); i++)
-	// {
-	// 	UD_printf("%3d ", i + 1);
-	// }
-	// UD_printf("\ndata: ");
-	// for (int i = 0; i < sizeof(pkg_to_send); i++)
-	// {
-	// 	UD_printf("%3x ", ((uint8_t*)&pkg_to_send)[i]);
-	// }
-	// UD_printf("\n");
+	UD_printf("fram head:\n");
+	UD_printf("\tloss:%d\n", UC_debug_data.rx_frame_head_loss);
+	UD_printf("\tunaligned:%d\n", UC_debug_data.rx_frame_head_unaligned);
+	UD_printf("\trealigned:%d\n", UC_debug_data.rx_frame_head_realigned);
+	UD_printf("pkg:\n");
+	UD_printf("\ttotal:%d\n", UC_debug_data.rx_pkt_total);
+	UD_printf("\tvalid id:%d\n", UC_debug_data.rx_pkt_id_valid);
+	UD_printf("\tvalid data:%d\n", UC_debug_data.rx_pkt_data_valid);
+	UD_printf("\tinvalid data:%d\n", UC_debug_data.rx_pkt_data_invalid);
+	UD_printf("\tdata loss rate:%.2f %%\n", (float)UC_debug_data.rx_pkt_data_invalid * 100 / (UC_debug_data.rx_pkt_data_invalid + UC_debug_data.rx_pkt_data_valid));
+	UD_printf("\n");
 }
+#endif

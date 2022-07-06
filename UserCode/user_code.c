@@ -28,6 +28,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include "vesc.h"
 #include "kinematic_calc.h"
 #include "uart_com.h"
+#include "string.h"
 
 extern int fix_counter;
 
@@ -44,19 +45,22 @@ void StartDefaultTask(void const *argument)
 	// UART_DEVICE* ud_9bit = UD_New(&huart1, 64, 64, UartDevice_IT, UartDevice_IT);
 	// UD_Open(ud_9bit);
 
-	UC_Rcv_Init(1, &huart6, &RxData);
+	UC_Rcv_Start(1, &huart6, &RxData);
 
-	TxData.test_int16 = 0x2233;
+	TxData.test_int16 = 0x0;
 	TxData.test_int8 = 0;
+
+	strcpy(TxData.cha, "This is a test string to test the uart communication");
 
 	// ADS1256_Init();
 
 	while (1)
 	{
-		TxData.test_int8++;
-		UC_Send(1, &huart6, &TxData);
+		// TxData.test_int16++;
+		// TxData.test_int32 += 2;
+		// TxData.test_int8--;
+		// UC_Send(1, &huart6, &TxData);
 
-		UD_printf("test_int8=%x test_int16=%x\n", RxData.test_int8, RxData.test_int16);
 		// test();
 		// ADS1256_UpdateDiffData();
 		// UD_printf("channel:");
