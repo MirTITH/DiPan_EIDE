@@ -12,7 +12,7 @@
 #include "CLI_custom_command.h"
 #include "ADS1256.h"
 #include "uart_device.h"
-
+#include "stdbool.h"
 
 /**
  * @brief 自定义命令在这里注册
@@ -23,6 +23,7 @@ void vRegisterCustomCLICommands(void)
 	CLI_New_Command(testvar, set CLI_test_var, F_Set_CLI_test_var, -1);
 	CLI_New_Command(sc, shengjiang zhuazi, F_Set_shangceng, -1);
 	CLI_New_Command(kamimadoka, kami.im, F_kamimadoka, 0);
+	CLI_New_Command(pnt, print message, F_pnt, 0);
 	CLI_New_Command(ads_read_reg, Read all registers of ADS1256, F_ads_read_reg, 0);
 }
 
@@ -84,6 +85,13 @@ BaseType_t F_kamimadoka(char *pcWriteBuffer, size_t xWriteBufferLen, const char 
 }
 
 //-------------------------------自定义命令写在下面（记得在上面的vRegisterCustomCLICommands()中注册）--------------------------
+
+extern bool pnt_UC_Debug_Data;
+BaseType_t F_pnt(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+{
+	pnt_UC_Debug_Data = !pnt_UC_Debug_Data;
+	return pdFAIL;
+}
 
 extern double speed_shengjiang;
 extern double speed_zhuazi;

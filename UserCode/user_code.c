@@ -29,39 +29,45 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include "kinematic_calc.h"
 #include "uart_com.h"
 #include "string.h"
+#include <stdbool.h>
 
-extern int fix_counter;
+// extern int fix_counter;
 
-uint16_t rx_data[4] = {0};
+bool pnt_UC_Debug_Data = true;
 
 UC_Data_t RxData, TxData;
 
+void TestTask(void const *argument)
+{
+	strcpy(TxData.test_string, "This is a test string to test the uart communication");
+	for (;;)
+	{
+		TxData.test_int16++;
+		TxData.test_int32 += 2;
+		TxData.test_int8--;
+		UC_Send(1, &huart6, &TxData);
+		osDelay(10);
+	}
+}
+
 void StartDefaultTask(void const *argument)
 {
-	
 	CLI_Init(&huart2);
 	UD_SetPrintfDevice(UD_Find(&huart2));
+	osThreadDef(testTask, TestTask, osPriorityNormal, 0, 256);
+	osThreadCreate(osThread(testTask), NULL);
 
-	// UART_DEVICE* ud_9bit = UD_New(&huart1, 64, 64, UartDevice_IT, UartDevice_IT);
-	// UD_Open(ud_9bit);
-
-	UC_Rcv_Start(1, &huart6, &RxData);
-
-	TxData.test_int16 = 0x0;
-	TxData.test_int8 = 0;
-
-	strcpy(TxData.cha, "This is a test string to test the uart communication");
-
+	UC_Receive_Start(1, &huart6, &RxData);
 	// ADS1256_Init();
 
 	while (1)
 	{
-		// TxData.test_int16++;
-		// TxData.test_int32 += 2;
-		// TxData.test_int8--;
-		// UC_Send(1, &huart6, &TxData);
+		if (pnt_UC_Debug_Data)
+		{
+			UC_print_debug_data();
+		}
+		     
 
-		// test();
 		// ADS1256_UpdateDiffData();
 		// UD_printf("channel:");
 		// for (int i = 0; i < 4; i++)
@@ -71,30 +77,6 @@ void StartDefaultTask(void const *argument)
 		// UD_printf("%8d", ADS1256_diff_data[3]);
 		// UD_printf("\n");
 		// UD_printf("fix counter: %d\n", fix_counter);
-
-
-		// UD_WriteStr(ud_9bit, (char*)&data, 1, 1000);
-
-		// UD_Read(ud_9bit, &rx_data, portMAX_DELAY);
-
-
-		
-		// HAL_UART_Transmit(&huart6, (uint8_t*)data16, 4, 1000);
-
-		// for (int i = 0; i < 4; i++)
-		// {
-		// 	UD_printf("%x ", rx_data[i]);
-		// }
-		
-		// UD_printf("\n");
-
-		// UD_printf("crc:%x\n", crc8(data8, 4));
-
-		// data8[4] = crc8(data8, 4);
-
-		// UD_printf("crc check:%x\n", crc8(data8, 5));
-
-		// UD_printf("rx_data: %x %x\n", rx_data[0], rx_data[1]);
 
 		osDelay(500);
 	}

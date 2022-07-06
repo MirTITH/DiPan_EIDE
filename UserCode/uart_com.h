@@ -23,7 +23,7 @@
  *             UC_RxCpltCallback(huart);
  *         }
  * 
- *     调用一次 UC_Rcv_Start() 开始接收，之后会在收到数据包并校验通过时自动更新数据
+ *     调用一次 UC_Receive_Start() 开始接收，之后会在收到数据包并校验通过时自动更新数据
  */
 
 #include "main.h"
@@ -31,10 +31,10 @@
 // 要传输的数据
 typedef struct
 {
-	int16_t test_int16;
 	int32_t test_int32;
+	int16_t test_int16;
 	int8_t test_int8;
-	char cha[100];
+	char test_string[100];
 } UC_Data_t;
 
 /**
@@ -44,7 +44,7 @@ typedef struct
  * @param huart 
  * @param data_to_receive 接收到的数据会写在这里
  */
-void UC_Rcv_Start(uint8_t ID, UART_HandleTypeDef* huart, UC_Data_t* data_to_receive);
+void UC_Receive_Start(uint8_t ID, UART_HandleTypeDef* huart, UC_Data_t* data_to_receive);
 
 /**
  * @brief 发送数据包
@@ -63,18 +63,19 @@ void UC_Send(uint8_t ID, UART_HandleTypeDef *huart, UC_Data_t *data_to_send);
 void UC_RxCpltCallback(UART_HandleTypeDef *huart);
 
 
-// #define UC_DEBUG
+#define UC_DEBUG
 
+// 统计值
 typedef struct 
 {
-	int rx_pkt_total;
-	int rx_pkt_data_valid;
-	int rx_pkt_data_invalid;
-	int rx_pkt_id_valid;
-	int rx_frame_head_loss;
-	int rx_frame_head_unaligned;
-	int rx_frame_head_realigned;
-}UC_Debug_t;
+	uint32_t rx_pkt_total;
+	uint32_t rx_pkt_data_valid;
+	uint32_t rx_pkt_data_invalid;
+	uint32_t rx_pkt_id_invalid;
+	uint32_t rx_frame_loss;
+	uint32_t rx_frame_loss_sync;
+	uint32_t rx_frame_resync;
+}UC_Stat_t;
 
 #ifdef UC_DEBUG
 void UC_print_debug_data();

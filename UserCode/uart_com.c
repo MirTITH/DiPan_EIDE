@@ -12,7 +12,6 @@
 #include "uart_com.h"
 #include "usart.h"
 #include "cmsis_os.h"
-#include "crcLib.h"
 #include "crc.h"
 #include <stdbool.h>
 #include <string.h>
@@ -67,8 +66,9 @@ struct
 	.tx_buffer.frame_tail = FRAME_TAIL_DEFINE};
 
 
-UC_Debug_t UC_debug_data = {0}; // debug 时用的数据
+UC_Stat_t UC_debug_data = {0}; // debug 时用的数据
 
+uint8_t crc8(uint8_t *data, uint16_t length);
 
 /**
  * @brief 检查数据包校验是否通过
@@ -79,7 +79,7 @@ UC_Debug_t UC_debug_data = {0}; // debug 时用的数据
  */
 bool DataPacket_Check(Data_Packet_t *packet)
 {
-	return HAL_CRC_Calculate(&hcrc, (uint32_t *)&(packet->effective_data), (DATA_REGION_SIZE + DATA_CRC_REGION_SIZE) / 4) == 0;
+	return HAL_CRC_Calculate(&hcrc, (uint32_t *)(((uint8_t *)packet) + INFO_REGION_SIZE), (DATA_REGION_SIZE + DATA_CRC_REGION_SIZE) / 4) == 0;
 }
 
 /**
@@ -95,7 +95,7 @@ void DataPacket_Pack(uint8_t ID, Data_Packet_t *packet, UC_Data_t *data_to_pack)
 
 	// 计算校验值
 	packet->_ID_CRC = crc8((uint8_t *)packet, sizeof(packet->_ID));
-	packet->_DATA_CRC = HAL_CRC_Calculate(&hcrc, (uint32_t *)&(packet->effective_data), DATA_REGION_SIZE / 4);
+	packet->_DATA_CRC = HAL_CRC_Calculate(&hcrc, (uint32_t *)(((uint8_t *)packet) + INFO_REGION_SIZE), DATA_REGION_SIZE / 4);
 }
 
 /**
@@ -110,9 +110,10 @@ int DataPacket_Unpack(Data_Packet_t *packet)
 	if (UC_Var.rx_dest_data != NULL)
 	{
 		if (memcmp(packet, UC_Var.rx_exp_info, INFO_REGION_SIZE) != 0)
+		{
+			UC_debug_data.rx_pkt_id_invalid++;
 			return 3;
-
-		UC_debug_data.rx_pkt_id_valid++;
+		}
 
 		if (DataPacket_Check(packet) == true)
 		{
@@ -174,7 +175,7 @@ void Frame_Send(UART_HandleTypeDef *huart, Frame_t *frame)
 	HAL_UART_Transmit(huart, (uint8_t *)frame, sizeof(Frame_t), portMAX_DELAY);
 }
 
-void UC_Rcv_Start(uint8_t ID, UART_HandleTypeDef *huart, UC_Data_t *data_to_receive)
+void UC_Receive_Start(uint8_t ID, UART_HandleTypeDef *huart, UC_Data_t *data_to_receive)
 {
 	if (huart != NULL)
 	{
@@ -217,7 +218,7 @@ void UC_RxCpltCallback(UART_HandleTypeDef *huart)
 			}
 			else
 			{
-				UC_debug_data.rx_frame_head_loss++;
+				UC_debug_data.rx_frame_loss++;
 				UC_Var.rx_head_aligned = false;
 				memset(UC_Var.rx_buffer.frame_head, 0, sizeof(UC_Var.rx_buffer.frame_head));
 				HAL_UART_Receive_IT(UC_Var.rx_huart, ((uint8_t *)&UC_Var.rx_buffer.frame_head) + sizeof(FRAME_HEAD) - 1, 1);
@@ -225,11 +226,11 @@ void UC_RxCpltCallback(UART_HandleTypeDef *huart)
 		}
 		else
 		{
-			UC_debug_data.rx_frame_head_unaligned++;
+			UC_debug_data.rx_frame_loss_sync++;
 			if (Frame_CheckHead(&UC_Var.rx_buffer))
 			{
 				UC_Var.rx_head_aligned = true;
-				UC_debug_data.rx_frame_head_realigned++;
+				UC_debug_data.rx_frame_resync++;
 				HAL_UART_Receive_IT(UC_Var.rx_huart, (uint8_t *)&(UC_Var.rx_buffer.data), sizeof(Frame_t) - sizeof(FRAME_HEAD));
 			}
 			else
@@ -241,20 +242,47 @@ void UC_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
 }
 
+/**
+ * Name:    CRC-8               x8+x2+x+1
+ * Poly:    0x07
+ * Init:    0x00
+ * Refin:   False
+ * Refout:  False
+ * Xorout:  0x00
+ * Note:
+ */
+uint8_t crc8(uint8_t *data, uint16_t length)
+{
+    uint8_t i;
+    uint8_t crc = 0;        // Initial value
+    while(length--)
+    {
+        crc ^= *data++;        // crc ^= *data; data++;
+        for ( i = 0; i < 8; i++ )
+        {
+            if ( crc & 0x80 )
+                crc = (crc << 1) ^ 0x07;
+            else
+                crc <<= 1;
+        }
+    }
+    return crc;
+}
+
 #ifdef UC_DEBUG
 #include "uart_device.h"
 void UC_print_debug_data()
 {
-	UD_printf("fram head:\n");
-	UD_printf("\tloss:%d\n", UC_debug_data.rx_frame_head_loss);
-	UD_printf("\tunaligned:%d\n", UC_debug_data.rx_frame_head_unaligned);
-	UD_printf("\trealigned:%d\n", UC_debug_data.rx_frame_head_realigned);
+	UD_printf("frame:\n");
+	UD_printf("\t loss:%d\n", UC_debug_data.rx_frame_loss);
+	UD_printf("\t out of sync:%d\n", UC_debug_data.rx_frame_loss_sync);
+	UD_printf("\t resync:%d\n", UC_debug_data.rx_frame_resync);
 	UD_printf("pkg:\n");
-	UD_printf("\ttotal:%d\n", UC_debug_data.rx_pkt_total);
-	UD_printf("\tvalid id:%d\n", UC_debug_data.rx_pkt_id_valid);
-	UD_printf("\tvalid data:%d\n", UC_debug_data.rx_pkt_data_valid);
-	UD_printf("\tinvalid data:%d\n", UC_debug_data.rx_pkt_data_invalid);
-	UD_printf("\tdata loss rate:%.2f %%\n", (float)UC_debug_data.rx_pkt_data_invalid * 100 / (UC_debug_data.rx_pkt_data_invalid + UC_debug_data.rx_pkt_data_valid));
+	UD_printf("\t total:%d\n", UC_debug_data.rx_pkt_total);
+	UD_printf("\t invalid id:%d\n", UC_debug_data.rx_pkt_id_invalid);
+	UD_printf("\t valid data:%d\n", UC_debug_data.rx_pkt_data_valid);
+	UD_printf("\t invalid data:%d\n", UC_debug_data.rx_pkt_data_invalid);
+	UD_printf("\t data loss rate:%.2f%%\n", (float)UC_debug_data.rx_pkt_data_invalid * 100 / (UC_debug_data.rx_pkt_data_invalid + UC_debug_data.rx_pkt_data_valid));
 	UD_printf("\n");
 }
 #endif
