@@ -7,22 +7,18 @@
 #include "main.h"
 #include "uart_device.h"
 #include "upper_part.h"
+#include "uart_com.h"
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	UD_TxCpltCallback(huart);
 }
 
-extern uint16_t rx_data[4];
-
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	UD_RxCpltCallback(huart);
+	UC_RxCpltCallback(huart);
 
-	if(huart->Instance == huart6.Instance)
-    {
-        HAL_UART_Receive_IT(&huart6, (uint8_t*)rx_data, 4);
-    }
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)

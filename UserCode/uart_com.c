@@ -10,93 +10,140 @@
  */
 
 #include "uart_com.h"
-#include "uart_device.h"
+#include "usart.h"
+#include "cmsis_os.h"
 #include "crcLib.h"
 #include "crc.h"
 #include <stdbool.h>
 #include <string.h>
 
-// #define UC_DATA_PKG_HEAD {0xAA, 0x93} // 帧头
-
-
-const uint8_t UC_DataPkg_HEAD[] = {0xAA, 0x93};
-#define HEAD_SIZE (sizeof(UC_DataPkg_HEAD)) // 帧头的个数
 #define RESERVEDATA_SIZE (sizeof(UC_Data_t) % 4)
-#define DATA_AND_RESERVE_SIZE (sizeof(UC_Data_t) + RESERVEDATA_SIZE)
 
 // 数据包
 typedef struct __attribute__((packed))
-{ // 顺序不能乱改
-	uint8_t _HEAD[HEAD_SIZE];
-	uint8_t _ID;
-	uint8_t _HEAD_CRC;
-	UC_Data_t uc_data;
-	uint8_t _RESERVEDATA[RESERVEDATA_SIZE]; // 用于将要发送的数据补全到 32 bit 的整数倍（CRC32要求数据为32的整数倍）
-	uint32_t _DATA_CRC;
-} UC_DataPkg_t;
+{
+	// 信息区
+	uint8_t _ID;	 // ID
+	uint8_t _ID_CRC; // ID 校验值
 
-UC_DataPkg_t pkg_to_send; // 要发送的数据会打包到这里
+	// 数据区
+	UC_Data_t effective_data;				// 有效数据区
+	uint8_t _RESERVEDATA[RESERVEDATA_SIZE]; // 保留数据区，用于将要发送的数据补全到 32 bit 的整数倍（CRC32要求数据为32的整数倍）
 
-UC_DataPkg_t pkg_rcvd; // 接收到的数据会先放到这里
+	// 数据校验区
+	uint32_t _DATA_CRC; // 数据区校验值
+} Data_Packet_t;
 
-// bool pkg_data_rcving = false;
-bool head_aligned_flag; // 帧头对齐标识
-UART_HandleTypeDef* UC_Rx_huart; // 接收数据的串口
-UC_Data_t* UC_Data_To_Rcv;
-#define SIZE_BEFORE_HEAD_CRC (HEAD_SIZE + sizeof(pkg_to_send._ID))
-#define SIZE_BEFORE_ucdata (HEAD_SIZE + sizeof(pkg_to_send._ID) + sizeof(pkg_to_send._HEAD_CRC))
-uint8_t pkg_expected_head[SIZE_BEFORE_ucdata];
+#define INFO_REGION_SIZE (sizeof(((Data_Packet_t *)0)->_ID) + sizeof(((Data_Packet_t *)0)->_ID_CRC)) // 信息区大小
+#define DATA_REGION_SIZE (sizeof(UC_Data_t) + RESERVEDATA_SIZE)										 // 数据区大小
+#define DATA_CRC_REGION_SIZE sizeof(((Data_Packet_t *)0)->_DATA_CRC)								 // 数据校验区大小
 
-// #define SIZE_AFTER_ucdata (RESERVEDATA_SIZE + sizeof(pkg_to_send._DATA_CRC))
+#define FRAME_HEAD_DEFINE \
+	{                     \
+		0xAA, 0x93        \
+	}
+#define FRAME_TAIL_DEFINE \
+	{                     \
+		0xBB, 0x00        \
+	}
+
+const uint8_t FRAME_HEAD[] = FRAME_HEAD_DEFINE; // 帧头
+const uint8_t FRAME_TAIL[] = FRAME_TAIL_DEFINE; // 帧尾
+
+// 数据帧
+typedef struct __attribute__((packed))
+{
+	uint8_t frame_head[sizeof(FRAME_HEAD)];
+	Data_Packet_t data;
+	uint8_t frame_tail[sizeof(FRAME_TAIL)];
+} Frame_t;
+
+// 数据帧收发相关的变量
+struct
+{
+	Frame_t tx_buffer;
+
+	UART_HandleTypeDef *rx_huart;		   // 接收数据的串口
+	UC_Data_t *rx_dest_data;			   // 接收数据目的地
+	Frame_t rx_buffer;					   // 接收缓冲
+	uint8_t rx_exp_info[INFO_REGION_SIZE]; // 期望接收的信息区
+	bool rx_head_aligned;				   // 接收帧头是否对齐
+} UC_Var = {
+	.tx_buffer.frame_head = FRAME_HEAD_DEFINE,
+	.tx_buffer.frame_tail = FRAME_TAIL_DEFINE};
 
 /**
- * @brief 串口通讯接收初始化（只发送不需要执行此函数）
- * 
- * @param huart 接收数据的串口句柄（传入 NULL 表示去初始化，即不再接收）
- * @param data_to_receive 接收到的数据会写到这里（去初始化时传 NULL）
+ * @brief 检查数据包校验是否通过
+ *
+ * @param packet
+ * @return true 通过
+ * @return false 不通过
  */
-void UC_Rcv_Init(UART_HandleTypeDef* huart, UC_Data_t* data_to_receive, uint8_t ID)
+bool DataPacket_Check(Data_Packet_t *packet)
 {
-	// if (huart != NULL)
-	// {
-	// 	pkg_data_rcving = false;
-	// 	memcpy(&pkg_expected_head, UC_DataPkg_HEAD, HEAD_SIZE);
-	// 	pkg_expected_head[HEAD_SIZE] = ID;
-	// 	pkg_expected_head[SIZE_BEFORE_HEAD_CRC] = crc8(pkg_expected_head, SIZE_BEFORE_HEAD_CRC);
-	// 	UC_Rx_huart = huart;
-	// 	UC_Data_To_Rcv = data_to_receive;
-	// 	HAL_UART_Receive_IT(UC_Rx_huart, (uint8_t)&pkg_rcvd, 1);
-	// }
-	// else
-	// {
-	// 	HAL_UART_Abort_IT(UC_Rx_huart);
-	// 	memcpy(&pkg_expected_head, 0, sizeof(pkg_expected_head));
-	// 	UC_Rx_huart = NULL;
-	// 	UC_Data_To_Rcv = NULL;
-	// 	pkg_data_rcving = false;
-	// }
+	return HAL_CRC_Calculate(&hcrc, (uint32_t *)&(packet->effective_data), (DATA_REGION_SIZE + DATA_CRC_REGION_SIZE) / 4) == 0;
 }
 
 /**
  * @brief 数据包打包并发送
  *
- * @param package
+ * @param packet
  * @param data_to_pack
  */
-void UC_DataPkg_Pack(uint8_t ID, UC_DataPkg_t *package, UC_Data_t *data_to_pack)
+void DataPacket_Pack(uint8_t ID, Data_Packet_t *packet, UC_Data_t *data_to_pack)
 {
-	memcpy(package->_HEAD, UC_DataPkg_HEAD, HEAD_SIZE);
-	package->_ID = ID;
-	package->uc_data = *data_to_pack;
+	packet->_ID = ID;
+	packet->effective_data = *data_to_pack;
 
-	// 写入 HEAD 和 ID 的校验值
-	package->_HEAD_CRC = crc8((uint8_t *)package, HEAD_SIZE + sizeof(package->_ID));
-	package->_DATA_CRC = HAL_CRC_Calculate(&hcrc, (uint32_t *)&(package->uc_data), DATA_AND_RESERVE_SIZE / 4);
+	// 计算校验值
+	packet->_ID_CRC = crc8((uint8_t *)packet, sizeof(packet->_ID));
+	packet->_DATA_CRC = HAL_CRC_Calculate(&hcrc, (uint32_t *)&(packet->effective_data), DATA_REGION_SIZE / 4);
 }
 
-bool UC_RxDataPkg_HeadCheck(UC_DataPkg_t *package)
+/**
+ * @brief 解包数据包，当校验通过时会更新 rx_dest_data
+ *
+ * @param packet
+ * @return int 0：成功；1：校验失败；2：rx_dest_data 无效；3：ID 不匹配
+ */
+int DataPacket_Unpack(Data_Packet_t *packet)
 {
-	if (memcmp(package, pkg_expected_head, SIZE_BEFORE_ucdata) == 0)
+	if (UC_Var.rx_dest_data != NULL)
+	{
+		if (memcmp(packet, UC_Var.rx_exp_info, INFO_REGION_SIZE) != 0)
+			return 3;
+
+		if (DataPacket_Check(packet) == true)
+		{
+			memcpy(UC_Var.rx_dest_data, &packet->effective_data, sizeof(UC_Data_t));
+			return 0;
+		}
+		else
+		{
+			return 1;
+		}
+	}
+	else
+	{
+		return 2;
+	}
+}
+
+bool Frame_CheckHead(Frame_t *frame)
+{
+	if (memcmp(&(frame->frame_head), FRAME_HEAD, sizeof(FRAME_HEAD)) == 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool Frame_CheckTail(Frame_t *frame)
+{
+	if (memcmp(&(frame->frame_tail), FRAME_TAIL, sizeof(FRAME_TAIL)) == 0)
 	{
 		return true;
 	}
@@ -107,24 +154,47 @@ bool UC_RxDataPkg_HeadCheck(UC_DataPkg_t *package)
 }
 
 /**
- * @brief 检查数据包校验是否通过
- * 
- * @param package 
- * @return true 通过
- * @return false 不通过
+ * @brief 将帧头数据前移一位
+ *
+ * @param frame
  */
-bool UC_DataPkg_Check(UC_DataPkg_t *package)
+void Frame_MoveForwardHead(Frame_t *frame)
 {
-	return (crc8((uint8_t *)package, SIZE_BEFORE_ucdata) == 0x00) &&
-		   (HAL_CRC_Calculate(&hcrc, (uint32_t *)&(package->uc_data), (DATA_AND_RESERVE_SIZE + sizeof(package->_DATA_CRC)) / 4) == 0x00);
+	for (int i = 0; i < sizeof(FRAME_HEAD) - 1; i++)
+	{
+		frame->frame_head[i] = frame->frame_head[i + 1];
+	}
 }
 
-void UC_DataPkg_HeadOffset(UC_DataPkg_t *package)
+void Frame_Send(UART_HandleTypeDef *huart, Frame_t *frame)
 {
-	uint8_t *pkg_ptr8 = (uint8_t *)package;
-	for (int i = 0; i < SIZE_BEFORE_ucdata - 1; i++)
+	HAL_UART_Transmit(huart, (uint8_t *)frame, sizeof(*frame), portMAX_DELAY);
+}
+
+/**
+ * @brief 串口通讯接收初始化（只发送不需要执行此函数）
+ *
+ * @param huart 接收数据的串口句柄（传入 NULL 表示去初始化，即不再接收）
+ * @param data_to_receive 接收到的数据会写到这里（去初始化时传 NULL）
+ */
+void UC_Rcv_Init(uint8_t ID, UART_HandleTypeDef *huart, UC_Data_t *data_to_receive)
+{
+	if (huart != NULL)
 	{
-		pkg_ptr8[i] = pkg_ptr8[i + 1];
+		UC_Var.rx_huart = huart;
+		UC_Var.rx_dest_data = data_to_receive;
+		UC_Var.rx_head_aligned = false;
+		UC_Var.rx_exp_info[0] = ID;
+		UC_Var.rx_exp_info[1] = crc8(&ID, 1);
+		HAL_UART_Receive_IT(huart, ((uint8_t *)&UC_Var.rx_buffer.frame_head) + sizeof(FRAME_HEAD) - 1, 1);
+	}
+	else if (UC_Var.rx_huart != NULL)
+	{
+		HAL_UART_AbortReceive(UC_Var.rx_huart);
+		UC_Var.rx_huart = NULL;
+		UC_Var.rx_head_aligned = false;
+		UC_Var.rx_dest_data = NULL;
+		memset(&UC_Var.rx_exp_info, 0, sizeof(UC_Var.rx_exp_info));
 	}
 }
 
@@ -135,44 +205,61 @@ void UC_DataPkg_HeadOffset(UC_DataPkg_t *package)
  */
 void UC_Send(uint8_t ID, UART_HandleTypeDef *huart, UC_Data_t *data_to_send)
 {
-	UC_DataPkg_Pack(ID, &pkg_to_send, data_to_send);
-	// UD_printf("crc check: %d\n", UC_DataPkg_Check(&pkg_to_send));
-	HAL_UART_Transmit(&huart2, (uint8_t *)&pkg_to_send, sizeof(pkg_to_send), portMAX_DELAY);
+	DataPacket_Pack(ID, &UC_Var.tx_buffer.data, data_to_send);
+	// UD_printf("crc check: %d\n", DataPacket_Check(&pkg_to_send));
+	Frame_Send(huart, &UC_Var.tx_buffer);
 }
 
 /**
  * @brief 串口接收回调函数
- * 
+ *
  */
-void UC_RxCpltCallback(UART_HandleTypeDef* huart)
+void UC_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	if (UC_Rx_huart == NULL)
+	if (UC_Var.rx_huart == NULL)
 		return;
 
-	if (huart->Instance == UC_Rx_huart->Instance)
+	if (huart->Instance == UC_Var.rx_huart->Instance)
 	{
-		if(head_aligned_flag)
+		if (UC_Var.rx_head_aligned)
 		{
-			if(UC_RxDataPkg_HeadCheck)
+			if (Frame_CheckHead(&UC_Var.rx_buffer) && Frame_CheckTail(&UC_Var.rx_buffer))
 			{
-				memcpy(UC_Data_To_Rcv, &pkg_rcvd.uc_data, sizeof(UC_Data_t));
-				HAL_UART_Receive_IT(UC_Rx_huart, (uint8_t)&pkg_rcvd, sizeof(UC_DataPkg_t));
+				DataPacket_Unpack(&UC_Var.rx_buffer.data);
+				HAL_UART_Receive_IT(UC_Var.rx_huart, (uint8_t *)&UC_Var.rx_buffer, sizeof(Frame_t));
 			}
-			
+			else
+			{
+				UC_Var.rx_head_aligned = false;
+				memset(UC_Var.rx_buffer.frame_head, 0, sizeof(UC_Var.rx_buffer.frame_head));
+				HAL_UART_Receive_IT(UC_Var.rx_huart, ((uint8_t *)&UC_Var.rx_buffer.frame_head) + sizeof(FRAME_HEAD) - 1, 1);
+			}
 		}
-
+		else
+		{
+			if (Frame_CheckHead(&UC_Var.rx_buffer))
+			{
+				UC_Var.rx_head_aligned = true;
+				HAL_UART_Receive_IT(UC_Var.rx_huart, (uint8_t *)&(UC_Var.rx_buffer.data), sizeof(Frame_t) - sizeof(FRAME_HEAD));
+			}
+			else
+			{
+				Frame_MoveForwardHead(&UC_Var.rx_buffer);
+				HAL_UART_Receive_IT(UC_Var.rx_huart, ((uint8_t *)&UC_Var.rx_buffer.frame_head) + sizeof(FRAME_HEAD) - 1, 1);
+			}
+		}
 	}
 }
 
 void test()
 {
-	UC_Data_t test_data = {
-		.test_int8 = 0x22,
-		.test_int82 = 0x33};
-	// UD_printf("pkg size: %d ", sizeof(UC_DataPkg_t));
+	// UC_Data_t test_data = {
+	// 	.test_int8 = 0x22,
+	// 	.test_int82 = 0x33};
+	// UD_printf("pkg size: %d ", sizeof(Data_Packet_t));
 	// UD_printf("data size: %d\n", sizeof(UC_Data_t));
 
-	UC_Send(1, &huart6, &test_data);
+	// UC_Send(1, &huart6, &test_data);
 
 	// UD_printf("pos:  ");
 

@@ -33,6 +33,8 @@ extern int fix_counter;
 
 uint16_t rx_data[4] = {0};
 
+UC_Data_t RxData, TxData;
+
 void StartDefaultTask(void const *argument)
 {
 	
@@ -42,23 +44,20 @@ void StartDefaultTask(void const *argument)
 	// UART_DEVICE* ud_9bit = UD_New(&huart1, 64, 64, UartDevice_IT, UartDevice_IT);
 	// UD_Open(ud_9bit);
 
-	// uint32_t data = 0x221123F1;
+	UC_Rcv_Init(1, &huart6, &RxData);
 
-	// uint8_t data8[5] = {0x22, 0x11, 0x23, 0xf1,0x00};
-
-	// uint16_t data16[4] = {0x001, 0x003, 0x107, 0x177};
-
-	HAL_UART_Receive_IT(&huart6, (uint8_t*)rx_data, 4);
-
-	// uint8_t data_with_crc[4+1];
-
-	
+	TxData.test_int16 = 0x2233;
+	TxData.test_int8 = 0;
 
 	// ADS1256_Init();
 
 	while (1)
 	{
-		test();
+		TxData.test_int8++;
+		UC_Send(1, &huart6, &TxData);
+
+		UD_printf("test_int8=%x test_int16=%x\n", RxData.test_int8, RxData.test_int16);
+		// test();
 		// ADS1256_UpdateDiffData();
 		// UD_printf("channel:");
 		// for (int i = 0; i < 4; i++)
