@@ -13,7 +13,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include "nrf_com.h"
 
 #define MAX_UartDevice_Num 4
 
