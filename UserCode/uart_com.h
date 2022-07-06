@@ -63,8 +63,6 @@ void UC_Send(uint8_t ID, UART_HandleTypeDef *huart, UC_Data_t *data_to_send);
 void UC_RxCpltCallback(UART_HandleTypeDef *huart);
 
 
-#define UC_DEBUG
-
 // 统计值
 typedef struct 
 {
@@ -76,6 +74,8 @@ typedef struct
 	uint32_t rx_frame_loss_sync;
 	uint32_t rx_frame_resync;
 }UC_Stat_t;
+
+// #define UC_DEBUG
 
 #ifdef UC_DEBUG
 void UC_print_debug_data();
