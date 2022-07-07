@@ -26,6 +26,7 @@
  *     调用一次 UC_Receive_Start() 开始接收，之后会在收到数据包并校验通过时自动更新数据
  */
 
+#pragma once
 #include "main.h"
 
 // 要传输的数据

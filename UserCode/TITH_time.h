@@ -9,6 +9,7 @@
  * 
  */
 
+#pragma once
 #include "main.h"
 
 // 在 CubeMX 中设置的系统定时器
