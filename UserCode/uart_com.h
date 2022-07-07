@@ -75,8 +75,6 @@ typedef struct
 	uint32_t rx_frame_resync;
 }UC_Stat_t;
 
-// #define UC_DEBUG
+#define UC_DEBUG
 
-#ifdef UC_DEBUG
 void UC_print_debug_data();
-#endif 

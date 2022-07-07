@@ -285,4 +285,6 @@ void UC_print_debug_data()
 	UD_printf("\t data loss rate:%.2f%%\n", (float)UC_debug_data.rx_pkt_data_invalid * 100 / (UC_debug_data.rx_pkt_data_invalid + UC_debug_data.rx_pkt_data_valid));
 	UD_printf("\n");
 }
+#else
+void UC_print_debug_data(){}
 #endif
