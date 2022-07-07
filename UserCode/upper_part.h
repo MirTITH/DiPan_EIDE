@@ -9,6 +9,8 @@
  * 
  */
 
+#pragma once
+
 void UWheels_Hall_Callback(int id);
 
 double LoopSimplify(double cycle, double value);
