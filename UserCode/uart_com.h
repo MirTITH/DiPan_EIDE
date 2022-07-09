@@ -32,10 +32,11 @@
 // 要传输的数据
 typedef struct
 {
-	int32_t test_int32;
-	int16_t test_int16;
-	int8_t test_int8;
-	char test_string[100];
+	int16_t Leftx;
+	int16_t Lefty;
+	int16_t Rightx;
+	int16_t Righty;
+	uint8_t buttons;
 } UC_Data_t;
 
 /**

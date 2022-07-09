@@ -16,6 +16,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+#ifdef UC_DEBUG
+#include "uart_device.h"
+#endif // UC_DEBUG
+
 #define RESERVEDATA_SIZE (sizeof(UC_Data_t) % 4)
 
 // 数据包
@@ -270,7 +274,6 @@ uint8_t crc8(uint8_t *data, uint16_t length)
 }
 
 #ifdef UC_DEBUG
-#include "uart_device.h"
 void UC_print_debug_data()
 {
 	UD_printf("frame:\n");

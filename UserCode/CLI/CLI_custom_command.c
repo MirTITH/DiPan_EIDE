@@ -21,7 +21,7 @@
 void vRegisterCustomCLICommands(void)
 {
 	CLI_New_Command(testvar, set CLI_test_var, F_Set_CLI_test_var, -1);
-	CLI_New_Command(sc, shengjiang zhuazi, F_Set_shangceng, -1);
+	// CLI_New_Command(sc, shengjiang zhuazi, F_Set_shangceng, -1);
 	CLI_New_Command(kamimadoka, kami.im, F_kamimadoka, 0);
 	CLI_New_Command(pnt, print message, F_pnt, 0);
 	CLI_New_Command(ads_read_reg, Read all registers of ADS1256, F_ads_read_reg, 0);
@@ -93,32 +93,32 @@ BaseType_t F_pnt(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcComm
 	return pdFAIL;
 }
 
-extern double speed_shengjiang;
-extern double speed_zhuazi;
-BaseType_t F_Set_shangceng(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
-{
-	BaseType_t xParameterStringLength;
-	const char *pcParameter;
-	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
+// extern double speed_shengjiang;
+// extern double speed_zhuazi;
+// BaseType_t F_Set_shangceng(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+// {
+// 	BaseType_t xParameterStringLength;
+// 	const char *pcParameter;
+// 	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
 
-	// UD_printf("enter\n", speed_zhuazi);
+// 	// UD_printf("enter\n", speed_zhuazi);
 
-	// HAL_Delay(2);
+// 	// HAL_Delay(2);
 
-	if (pcParameter != NULL) // 说明没有带参数
-	{
-		speed_zhuazi = atof(pcParameter);
-		// UD_printf("z %g ", speed_zhuazi);
-	}
-	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 2, &xParameterStringLength);
+// 	if (pcParameter != NULL) // 说明没有带参数
+// 	{
+// 		speed_zhuazi = atof(pcParameter);
+// 		// UD_printf("z %g ", speed_zhuazi);
+// 	}
+// 	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 2, &xParameterStringLength);
 
-	if (pcParameter != NULL) // 说明没有带参数
-	{
-		speed_shengjiang = atof(pcParameter);
-		// UD_printf("s %g\n", speed_shengjiang);
-	}
-	return pdFALSE; // 结束执行
-}
+// 	if (pcParameter != NULL) // 说明没有带参数
+// 	{
+// 		speed_shengjiang = atof(pcParameter);
+// 		// UD_printf("s %g\n", speed_shengjiang);
+// 	}
+// 	return pdFALSE; // 结束执行
+// }
 
 BaseType_t F_ads_read_reg(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
 {

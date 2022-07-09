@@ -17,7 +17,9 @@
             "*.cpp": "cpp",
             "*.cxx": "cpp",
             "*.cc": "cpp",
-            "cstdlib": "c"
+            "cstdlib": "c",
+            "cmath": "c",
+            "*.tcc": "c"
         },
         "[yaml]": {
             "editor.insertSpaces": true,
@@ -26,7 +28,7 @@
         },
         "EIDE.SerialPortMonitor.BaudRate": 115200,
         "stm32-for-vscode.openOCDPath": false,
-        "cortex-debug.variableUseNaturalFormat": false
+        "cortex-debug.variableUseNaturalFormat": true
     },
     "extensions": {
         "recommendations": [
