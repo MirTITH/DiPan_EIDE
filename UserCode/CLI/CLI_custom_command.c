@@ -23,7 +23,7 @@ void vRegisterCustomCLICommands(void)
 	CLI_New_Command(testvar, set CLI_test_var, F_Set_CLI_test_var, -1);
 	// CLI_New_Command(sc, shengjiang zhuazi, F_Set_shangceng, -1);
 	CLI_New_Command(kamimadoka, kami.im, F_kamimadoka, 0);
-	CLI_New_Command(pnt, print message, F_pnt, 0);
+	CLI_New_Command(pnt_uart_com, print uart com message, F_pnt, 0);
 	CLI_New_Command(ads_read_reg, Read all registers of ADS1256, F_ads_read_reg, 0);
 }
 

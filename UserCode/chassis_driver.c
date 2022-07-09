@@ -9,7 +9,7 @@
  * 
  */
 
-#include "chassis.h"
+#include "chassis_driver.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -26,43 +26,11 @@ typedef struct
 }Chassis_Axes_t;
 
 Chassis_Axes_t chassis_axes = {
-	.wheel_distance_x = 62,
-	.wheel_distance_y = 62,
+	.wheel_distance_x = 0.62,
+	.wheel_distance_y = 0.62,
 	.origin_offset_x = 0,
 	.origin_offset_y = 0
 };
-
-void Wheels_Init(uni_wheel_t *wheel)
-{
-	wheel[0].hDJI = &hDJI[4];
-	wheel[1].hDJI = &hDJI[5];
-	wheel[2].hDJI = &hDJI[6];
-	wheel[3].hDJI = &hDJI[7];
-	
-	// 霍尔还没写
-	// wheel[0].hall_GPIO_PINx;
-	// wheel[1].hall_GPIO_PINx;
-	// wheel[2].hall_GPIO_PINx;
-	// wheel[3].hall_GPIO_PINx;
-
-	wheel[0].hvesc.hcann = &hcan1;
-	wheel[0].hvesc.controller_id = 0x00;
-	wheel[1].hvesc.hcann = &hcan1;
-	wheel[1].hvesc.controller_id = 0x01;
-	wheel[2].hvesc.hcann = &hcan1;
-	wheel[2].hvesc.controller_id = 0x02;
-	wheel[3].hvesc.hcann = &hcan1;
-	wheel[3].hvesc.controller_id = 0x03;
-
-	for (int i = 0; i < 4; i++)
-	{
-		wheel[i].rot_pos_ratio = 191;
-		wheel[i].speed_ratio = 2938;
-		wheel[i].rot_pos_offset = 0;
-	}
-
-	Chassis_SetOrigin(wheel, 0, 0);
-}
 
 /**
  * @brief 循环变量化简
@@ -146,16 +114,16 @@ void Wheel_SetXY(uni_wheel_t *wheel, double speed_x, double speed_y)
 
 void Wheels_CANTransmit(uni_wheel_t wheel[])
 {
-	// CanTransmit_DJI_5678(&hcan1,
-	// 					 wheel[0].hDJI->speedPID.output,
-	// 					 wheel[1].hDJI->speedPID.output,
-	// 					 wheel[2].hDJI->speedPID.output,
-	// 					 wheel[3].hDJI->speedPID.output);
+	CanTransmit_DJI_5678(&hcan1,
+						 wheel[0].hDJI->speedPID.output,
+						 wheel[1].hDJI->speedPID.output,
+						 wheel[2].hDJI->speedPID.output,
+						 wheel[3].hDJI->speedPID.output);
 	
-	// for (int i = 0; i < 4; i++)
-	// {
-	// 	VESC_CAN_SET_ERPM(&wheel[i].hvesc, wheel[i].exp_speed * wheel[i].speed_ratio);
-	// }
+	for (int i = 0; i < 4; i++)
+	{
+		VESC_CAN_SET_ERPM(&wheel[i].hvesc, wheel[i].exp_speed * wheel[i].speed_ratio);
+	}
 }
 
 void Wheels_Calc(uni_wheel_t wheel[], int num)
@@ -172,8 +140,39 @@ void Wheels_CalcTransmit(uni_wheel_t wheel[], int num)
 	Wheels_CANTransmit(wheel);
 }
 
+void Chassis_Init(uni_wheel_t *wheel)
+{
+	Chassis_SetOrigin(wheel, 0, 0);
+	wheel[0].hDJI = &hDJI[4];
+	wheel[1].hDJI = &hDJI[5];
+	wheel[2].hDJI = &hDJI[6];
+	wheel[3].hDJI = &hDJI[7];
+	
+	// 霍尔还没写
+	// wheel[0].hall_GPIO_PINx;
+	// wheel[1].hall_GPIO_PINx;
+	// wheel[2].hall_GPIO_PINx;
+	// wheel[3].hall_GPIO_PINx;
+
+	wheel[0].hvesc.hcann = &hcan1;
+	wheel[0].hvesc.controller_id = 0x00;
+	wheel[1].hvesc.hcann = &hcan1;
+	wheel[1].hvesc.controller_id = 0x01;
+	wheel[2].hvesc.hcann = &hcan1;
+	wheel[2].hvesc.controller_id = 0x02;
+	wheel[3].hvesc.hcann = &hcan1;
+	wheel[3].hvesc.controller_id = 0x03;
+
+	for (int i = 0; i < 4; i++)
+	{
+		wheel[i].rot_pos_ratio = 191;
+		wheel[i].speed_ratio = 2938;
+		wheel[i].rot_pos_offset = 0;
+	}
+}
+
 /**
- * @brief 设置底盘的运动
+ * @brief 设置底盘的运动，计算并发送给电机
  * 
  * @param wheel 
  * @param num 轮子的数量
@@ -183,7 +182,11 @@ void Wheels_CalcTransmit(uni_wheel_t wheel[], int num)
  */
 void Chassis_SetSpeed(uni_wheel_t *wheel, int num, double vx, double vy, double ang_v)
 {
-
+	for (int i = 0; i < num; i++)
+	{
+		Wheel_SetXY(&wheel[i], vx + ang_v * wheel[i].loc_y, vy - wheel[i].loc_x * ang_v);
+	}
+	Wheels_CalcTransmit(wheel, num);
 }
 
 /**
