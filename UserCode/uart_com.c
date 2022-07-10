@@ -16,6 +16,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+#ifdef UC_DEBUG
+#include "uart_device.h"
+#endif // UC_DEBUG
+
 #define RESERVEDATA_SIZE (sizeof(UC_Data_t) % 4)
 
 // 数据包
@@ -270,19 +274,18 @@ uint8_t crc8(uint8_t *data, uint16_t length)
 }
 
 #ifdef UC_DEBUG
-#include "uart_device.h"
 void UC_print_debug_data()
 {
-	UD_printf("frame:\n");
-	UD_printf("\t loss:%d\n", UC_debug_data.rx_frame_loss);
-	UD_printf("\t out of sync:%d\n", UC_debug_data.rx_frame_loss_sync);
-	UD_printf("\t resync:%d\n", UC_debug_data.rx_frame_resync);
-	UD_printf("pkg:\n");
-	UD_printf("\t total:%d\n", UC_debug_data.rx_pkt_total);
-	UD_printf("\t invalid id:%d\n", UC_debug_data.rx_pkt_id_invalid);
-	UD_printf("\t valid data:%d\n", UC_debug_data.rx_pkt_data_valid);
-	UD_printf("\t invalid data:%d\n", UC_debug_data.rx_pkt_data_invalid);
-	UD_printf("\t data loss rate:%.2f%%\n", (float)UC_debug_data.rx_pkt_data_invalid * 100 / (UC_debug_data.rx_pkt_data_invalid + UC_debug_data.rx_pkt_data_valid));
+	UD_printf("frame: ");
+	UD_printf("loss:%5d  ", UC_debug_data.rx_frame_loss);
+	UD_printf("out of sync:%5d  ", UC_debug_data.rx_frame_loss_sync);
+	UD_printf("resync:%4d\n", UC_debug_data.rx_frame_resync);
+	UD_printf("pkg: ");
+	UD_printf("total:%5d  ", UC_debug_data.rx_pkt_total);
+	UD_printf("invalid id:%5d  ", UC_debug_data.rx_pkt_id_invalid);
+	UD_printf("valid data:%5d  ", UC_debug_data.rx_pkt_data_valid);
+	UD_printf("invalid data:%5d  ", UC_debug_data.rx_pkt_data_invalid);
+	UD_printf("data loss rate:%.2f%%\n", (float)UC_debug_data.rx_pkt_data_invalid * 100 / (UC_debug_data.rx_pkt_data_invalid + UC_debug_data.rx_pkt_data_valid));
 	UD_printf("\n");
 }
 #else

@@ -26,16 +26,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	switch (GPIO_Pin)
 	{
 	case GPIO_PIN_9:
-		UWheels_Hall_Callback(0);
+		// UWheels_Hall_Callback(0);
 		break;
 	case GPIO_PIN_10:
-		UWheels_Hall_Callback(1);
+		// UWheels_Hall_Callback(1);
 		break;
 	case GPIO_PIN_11:
-		UWheels_Hall_Callback(2);
+		// UWheels_Hall_Callback(2);
 		break;
 	case GPIO_PIN_12:
-		UWheels_Hall_Callback(3);
+		// UWheels_Hall_Callback(3);
 		break;
 	default:
 		// printf("EXTI %d\n", GPIO_Pin);
