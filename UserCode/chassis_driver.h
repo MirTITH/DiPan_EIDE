@@ -25,7 +25,10 @@ typedef struct
 
 	double rot_pos_offset; // 角位置偏置，(rot_pos + rot_pos_offset) * rot_pos_ratio = PID 的值
 	double rot_pos_ratio;  // 角位置比率，(rot_pos + rot_pos_offset) * rot_pos_ratio = PID 的值
-	double speed_ratio;    // 速度比率，speed * speed_ratio = ERPM
+	double speed_ratio;	   // 速度比率，speed * speed_ratio = ERPM
+	double hall_on_pos;	   // 霍尔检测到时的 now_rot_pos
+	double hall_off_pos;   // 霍尔失去时的 now_rot_pos
+	double hall_angle;	   // 霍尔传感器所在的角度
 	uint16_t hall_GPIO_PINx;
 	DJI_t *hDJI;
 	VESC_t hvesc;
@@ -42,3 +45,5 @@ void Wheels_CalcTransmit(uni_wheel_t wheel[], int num);
 void Chassis_SetOrigin(uni_wheel_t *wheel, double origin_x, double origin_y);
 
 void Chassis_SetSpeed(uni_wheel_t *wheel, int num, double vx, double vy, double ang_v);
+
+void Wheel_Hall_Callback(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, uni_wheel_t *wheel);

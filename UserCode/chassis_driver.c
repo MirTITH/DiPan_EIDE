@@ -63,6 +63,11 @@ void Wheel_Set(uni_wheel_t *wheel, double speed, double rot_pos)
 	wheel->exp_rot_pos = rot_pos;
 }
 
+void Wheel_ReadNowRotPos(uni_wheel_t *wheel)
+{
+	wheel->now_rot_pos = (wheel->hDJI->posPID.fdb / wheel->rot_pos_ratio) - wheel->rot_pos_offset;
+}
+
 /**
  * @brief 设置舵轮x,y方向的速度分量
  * 
@@ -72,7 +77,7 @@ void Wheel_Set(uni_wheel_t *wheel, double speed, double rot_pos)
  */
 void Wheel_SetXY(uni_wheel_t *wheel, double speed_x, double speed_y)
 {
-	wheel->now_rot_pos = (wheel->hDJI->posPID.fdb / wheel->rot_pos_ratio) - wheel->rot_pos_offset;
+	Wheel_ReadNowRotPos(wheel);
 	double exp_speed = sqrt(speed_x * speed_x + speed_y * speed_y);
 	double angle;
 
@@ -111,6 +116,24 @@ void Wheel_SetXY(uni_wheel_t *wheel, double speed_x, double speed_y)
 		exp_speed = -exp_speed;
 	}
 	Wheel_Set(wheel, exp_speed, wheel->now_rot_pos + delta_pos);
+}
+
+void Wheel_Hall_Callback(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, uni_wheel_t *wheel)
+{
+	if(HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) == GPIO_PIN_SET)
+	{
+		Wheel_ReadNowRotPos(wheel);
+		wheel->hall_on_pos = wheel->now_rot_pos;
+	}
+	else
+	{
+		Wheel_ReadNowRotPos(wheel);
+		wheel->hall_off_pos = wheel->now_rot_pos;
+		double hall_pos = (wheel->hall_on_pos + wheel->hall_off_pos) / 2;
+		double delta_angle = LoopSimplify(2 * M_PI, hall_pos - wheel->hall_angle);
+		wheel->rot_pos_offset += delta_angle;
+		Wheel_ReadNowRotPos(wheel);
+	}
 }
 
 void Wheels_CANTransmit(uni_wheel_t wheel[])
@@ -192,6 +215,7 @@ void Chassis_SetSpeed(uni_wheel_t *wheel, int num, double vx, double vy, double 
 	{
 		Wheel_SetXY(&wheel[i], vx + ang_v * wheel[i].loc_y, vy - wheel[i].loc_x * ang_v);
 	}
+	
 	Wheels_CalcTransmit(wheel, num);
 }
 
