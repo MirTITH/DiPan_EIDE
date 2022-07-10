@@ -173,7 +173,7 @@ void Chassis_Init(uni_wheel_t *wheel)
 	{
 		wheel[i].rot_pos_ratio = 191;
 		wheel[i].speed_ratio = 2938;
-		wheel[i].rot_pos_offset = 0;
+		wheel[i].rot_pos_offset = - M_PI / 2;
 	}
 }
 

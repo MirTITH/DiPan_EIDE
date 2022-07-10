@@ -27,6 +27,7 @@ void vRegisterCustomCLICommands(void)
 	CLI_New_Command(kamimadoka, kami.im, F_kamimadoka, 0);
 	CLI_New_Command(pnt_uart_com, print uart com message, F_pnt, 0);
 	CLI_New_Command(ads_read_reg, Read all registers of ADS1256, F_ads_read_reg, 0);
+	CLI_New_Command(reboot, reboot, F_reboot, 0);
 }
 
 //-------------------------------示例命令--------------------------
@@ -92,6 +93,12 @@ extern bool pnt_UC_Debug_Data;
 BaseType_t F_pnt(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
 {
 	pnt_UC_Debug_Data = !pnt_UC_Debug_Data;
+	return pdFAIL;
+}
+
+BaseType_t F_reboot(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+{
+	HAL_NVIC_SystemReset();
 	return pdFAIL;
 }
 
