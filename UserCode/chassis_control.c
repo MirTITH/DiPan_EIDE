@@ -39,9 +39,8 @@ void ChassisTask(void const *argument)
 		if (fabs(joystick_rx) < 500) joystick_rx = 0;
 		if (fabs(joystick_ry) < 500) joystick_ry = 0;
 
-		Chassis_SetSpeed(wheels, 4, joystick_lx / 2048.0, joystick_ly / 2048.0, -joystick_rx / 2048.0);
+		Chassis_SetSpeed(wheels, 4, joystick_lx / 2048.0, joystick_ly / 2048.0, joystick_rx / 2048.0);
 
-		Wheels_CalcTransmit(wheels, 4);
 		osDelayUntil(&PreviousWakeTime, 2);
 	}	
 }

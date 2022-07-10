@@ -16,6 +16,7 @@
 #include "useful_constant.h"
 #include "Caculate.h"
 #include "uart_device.h"
+#include "string.h"
 
 typedef struct
 {
@@ -142,6 +143,11 @@ void Wheels_CalcTransmit(uni_wheel_t wheel[], int num)
 
 void Chassis_Init(uni_wheel_t *wheel)
 {
+	for (int i = 0; i < 4; i++)
+	{
+		memset(&wheel[i], 0, sizeof(uni_wheel_t));
+	}
+
 	Chassis_SetOrigin(wheel, 0, 0);
 	wheel[0].hDJI = &hDJI[4];
 	wheel[1].hDJI = &hDJI[5];

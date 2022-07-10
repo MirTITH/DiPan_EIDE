@@ -37,6 +37,8 @@ bool pnt_UC_Debug_Data = false;
 
 void TestTask(void const *argument);
 
+UC_Data_t RxData = {0};
+
 void StartDefaultTask(void const *argument)
 {
 	CLI_Init(&huart2);
@@ -55,9 +57,7 @@ void StartDefaultTask(void const *argument)
 	hDJI[6].motorType = M2006;
 	hDJI[7].motorType = M2006;
 	DJI_Init();
-
-	UC_Data_t RxData;
-	UC_Receive_Start(1, &huart6, &RxData);
+	// UC_Receive_Start(1, &huart6, &RxData);
 	ChassisTaskStart(&RxData);
 
 	// ADS1256_Init();
@@ -72,10 +72,10 @@ void TestTask(void const *argument)
 {
 	for (;;)
 	{
-		if (pnt_UC_Debug_Data)
-		{
-			UC_print_debug_data();
-		}
+		// if (pnt_UC_Debug_Data)
+		// {
+		// 	UC_print_debug_data();
+		// }
 
 		// UD_printf("lx:%5d ly:%5d rx:%5d ry:%5d ", RxData.Leftx, RxData.Lefty, RxData.Rightx, RxData.Righty);
 		// UD_printf("but:%x\n", RxData.buttons);
