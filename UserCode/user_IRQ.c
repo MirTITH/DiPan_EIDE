@@ -46,4 +46,5 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		// printf("EXTI %d\n", GPIO_Pin);
 		break;
 	}
-} */
+*/
+}
