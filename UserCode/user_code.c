@@ -57,14 +57,15 @@ void StartDefaultTask(void const *argument)
 	hDJI[6].motorType = M2006;
 	hDJI[7].motorType = M2006;
 	DJI_Init();
-	// UC_Receive_Start(1, &huart6, &RxData);
+	UC_Receive_Start(1, &huart6, &RxData);
 	ChassisTaskStart(&RxData);
 
 	// ADS1256_Init();
 
 	while (1)
 	{
-		osDelay(10000);
+		UC_Send(1, &huart1, &RxData);
+		osDelay(100);
 	}
 }
 
