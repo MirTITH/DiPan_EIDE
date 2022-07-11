@@ -71,6 +71,6 @@ void ChassisTaskStart(UC_Data_t *RxData)
 	osThreadDef(chassis, ChassisTask, osPriorityBelowNormal, 0, 256);
 	osThreadCreate(osThread(chassis), RxData);
 
-	osThreadDef(chassis_test, ChassisTestTask, osPriorityBelowNormal, 0, 256);
-	osThreadCreate(osThread(chassis_test), NULL);
+	// osThreadDef(chassis_test, ChassisTestTask, osPriorityBelowNormal, 0, 256);
+	// osThreadCreate(osThread(chassis_test), NULL);
 }

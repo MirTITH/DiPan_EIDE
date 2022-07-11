@@ -41,6 +41,7 @@ UC_Data_t RxData = {0};
 
 void StartDefaultTask(void const *argument)
 {
+	osDelay(500);
 	CLI_Init(&huart2);
 	UD_SetPrintfDevice(UD_Find(&huart2));
 
@@ -65,7 +66,7 @@ void StartDefaultTask(void const *argument)
 	while (1)
 	{
 		UC_Send(1, &huart1, &RxData);
-		osDelay(100);
+		osDelay(10);
 	}
 }
 
@@ -73,13 +74,12 @@ void TestTask(void const *argument)
 {
 	for (;;)
 	{
-		// if (pnt_UC_Debug_Data)
-		// {
-		// 	UC_print_debug_data();
-		// }
-
-		// UD_printf("lx:%5d ly:%5d rx:%5d ry:%5d ", RxData.Leftx, RxData.Lefty, RxData.Rightx, RxData.Righty);
-		// UD_printf("but:%x\n", RxData.buttons);
+		if (pnt_UC_Debug_Data)
+		{
+			UC_print_debug_data();
+			UD_printf("lx:%5d ly:%5d rx:%5d ry:%5d ", RxData.Leftx, RxData.Lefty, RxData.Rightx, RxData.Righty);
+			UD_printf("but:%x\n", RxData.buttons);
+		}
 		// UD_printf("fix counter: %d\n", fix_counter);
 		osDelay(200);
 	}
