@@ -13,6 +13,7 @@
 #include "ADS1256.h"
 #include "uart_device.h"
 #include "stdbool.h"
+#include "useful_constant.h"
 
 /**
  * @brief 自定义命令在这里注册
@@ -21,9 +22,9 @@
 void vRegisterCustomCLICommands(void)
 {
 	CLI_New_Command(testvar, set CLI_test_var, F_Set_CLI_test_var, -1);
-	// CLI_New_Command(sc, shengjiang zhuazi, F_Set_shangceng, -1);
 	CLI_New_Command(joystkl, joystick left_x left_y, F_Set_joystickL, 2);
 	CLI_New_Command(joystkr, joystick right_x right_y, F_Set_joystickR, 2);
+	CLI_New_Command(wheel_offset, wheel_offset id offset_deg, F_wheel_offset, 2);
 	CLI_New_Command(kamimadoka, kami.im, F_kamimadoka, 0);
 	CLI_New_Command(pnt_uart_com, print uart com message, F_pnt, 0);
 	CLI_New_Command(ads_read_reg, Read all registers of ADS1256, F_ads_read_reg, 0);
@@ -102,33 +103,6 @@ BaseType_t F_reboot(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcC
 	return pdFAIL;
 }
 
-// extern double speed_shengjiang;
-// extern double speed_zhuazi;
-// BaseType_t F_Set_shangceng(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
-// {
-// 	BaseType_t xParameterStringLength;
-// 	const char *pcParameter;
-// 	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
-
-// 	// UD_printf("enter\n", speed_zhuazi);
-
-// 	// HAL_Delay(2);
-
-// 	if (pcParameter != NULL) // 说明没有带参数
-// 	{
-// 		speed_zhuazi = atof(pcParameter);
-// 		// UD_printf("z %g ", speed_zhuazi);
-// 	}
-// 	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 2, &xParameterStringLength);
-
-// 	if (pcParameter != NULL) // 说明没有带参数
-// 	{
-// 		speed_shengjiang = atof(pcParameter);
-// 		// UD_printf("s %g\n", speed_shengjiang);
-// 	}
-// 	return pdFALSE; // 结束执行
-// }
-
 #include "uart_com.h"
 extern UC_Data_t RxData;
 BaseType_t F_Set_joystickL(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
@@ -166,6 +140,34 @@ BaseType_t F_Set_joystickR(char *pcWriteBuffer, size_t xWriteBufferLen, const ch
 	if (pcParameter != NULL)
 	{
 		RxData.Righty = atof(pcParameter);
+	}
+
+	return pdFALSE; // 结束执行
+}
+#include "chassis_driver.h"
+extern uni_wheel_t wheels[4];
+BaseType_t F_wheel_offset(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
+{
+	BaseType_t xParameterStringLength;
+	const char *pcParameter;
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
+
+	int id = 0;
+
+	if (pcParameter != NULL)
+	{
+		id = atoi(pcParameter);
+		if (id > 3 || id < 0)
+		{
+			UD_printf("Err. wrong id\n");
+			return pdFALSE;
+		}
+	}
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 2, &xParameterStringLength);
+
+	if (pcParameter != NULL)
+	{
+		wheels[id].hall_off_pos = atof(pcParameter) / 180.0 * M_PI;
 	}
 
 	return pdFALSE; // 结束执行
