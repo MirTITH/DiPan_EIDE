@@ -7,6 +7,7 @@
     "settings": {
         "files.autoGuessEncoding": true,
         "C_Cpp.default.configurationProvider": "cl.eide",
+        "C_Cpp.errorSquiggles": "Disabled",
         "files.associations": {
             ".eideignore": "ignore",
             "*.h": "c",
@@ -16,19 +17,13 @@
             "*.c++": "cpp",
             "*.cpp": "cpp",
             "*.cxx": "cpp",
-            "*.cc": "cpp",
-            "cstdlib": "c",
-            "cmath": "c",
-            "*.tcc": "c"
+            "*.cc": "cpp"
         },
         "[yaml]": {
             "editor.insertSpaces": true,
             "editor.tabSize": 4,
             "editor.autoIndent": "advanced"
-        },
-        "EIDE.SerialPortMonitor.BaudRate": 115200,
-        "stm32-for-vscode.openOCDPath": false,
-        "cortex-debug.variableUseNaturalFormat": true
+        }
     },
     "extensions": {
         "recommendations": [
