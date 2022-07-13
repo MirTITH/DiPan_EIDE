@@ -55,7 +55,6 @@
   },
   "uploader": "OpenOCD",
   "srcDirs": [
-    "./.eide/deps",
     "./Core",
     "./Drivers",
     "./Middlewares",
