@@ -237,6 +237,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Core/Src/stm32f4xx_it.c</locationURI>
 		</link>
 		<link>
+			<name>Application/User/Core/tim.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Core/Src/tim.c</locationURI>
+		</link>
+		<link>
 			<name>Application/User/Core/usart.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Core/Src/usart.c</locationURI>

@@ -30,6 +30,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include "string.h"
 #include <stdbool.h>
 #include "chassis_control.h"
+#include "tim.h"
 
 // extern int fix_counter;
 
@@ -39,33 +40,22 @@ void TestTask(void const *argument);
 
 UC_Data_t RxData = {0};
 
+int pwmVal = 1000;
+
 void StartDefaultTask(void const *argument)
 {
 	osDelay(500);
 	CLI_Init(&huart2);
 	UD_SetPrintfDevice(UD_Find(&huart2));
 
+	HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_3);
+
 	osThreadDef(testTask, TestTask, osPriorityNormal, 0, 256);
 	osThreadCreate(osThread(testTask), NULL);
 
-	//大疆电机初始化
-	CANFilterInit(&hcan1);
-	// hDJI[0].motorType = M3508; // 爪子
-	// hDJI[1].motorType = M2006;
-	// hDJI[2].motorType = M3508; // 升降
-	hDJI[4].motorType = M2006;
-	hDJI[5].motorType = M2006;
-	hDJI[6].motorType = M2006;
-	hDJI[7].motorType = M2006;
-	DJI_Init();
-	UC_Receive_Start(1, &huart6, &RxData);
-	ChassisTaskStart(&RxData);
-
-	// ADS1256_Init();
-
 	while (1)
 	{
-		UC_Send(1, &huart1, &RxData);
+		__HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_3, pwmVal);
 		osDelay(10);
 	}
 }

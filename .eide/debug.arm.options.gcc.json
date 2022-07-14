@@ -18,7 +18,7 @@
     "linker": {
         "output-format": "elf",
         "remove-unused-input-sections": true,
-        "LD_FLAGS": "--specs=nosys.specs --specs=nano.specs",
+        "LD_FLAGS": "--specs=nosys.specs --specs=nano.specs -u _printf_float",
         "LIB_FLAGS": "-lm"
     }
 }

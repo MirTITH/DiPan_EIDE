@@ -23,6 +23,7 @@ void vRegisterCustomCLICommands(void)
 {
 	CLI_New_Command(testvar, set CLI_test_var, F_Set_CLI_test_var, -1);
 	CLI_New_Command(joystkl, joystick left_x left_y, F_Set_joystickL, 2);
+	CLI_New_Command(pwm, pwm pulseln, F_pwm, -1);
 	CLI_New_Command(joystkr, joystick right_x right_y, F_Set_joystickR, 2);
 	CLI_New_Command(wheel_offset, wheel_offset id offset_deg, F_wheel_offset, 2);
 	CLI_New_Command(kamimadoka, kami.im, F_kamimadoka, 0);
@@ -59,6 +60,25 @@ BaseType_t F_Set_CLI_test_var(char *pcWriteBuffer, size_t xWriteBufferLen, const
 		UD_printf("Set CLI_test_var = %lg\n", CLI_test_var);
 	}
 	return pdFALSE; // 结束执行
+}
+
+
+extern int pwmVal;
+BaseType_t F_pwm(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString)
+{
+	BaseType_t xParameterStringLength;
+	const char *pcParameter;
+	pcParameter = FreeRTOS_CLIGetParameter(pcCommandString, 1, &xParameterStringLength);
+
+	if (pcParameter != NULL)
+	{
+		pwmVal = atoi(pcParameter);
+		UD_printf("set pwmVal = %d\n", pwmVal);
+		return pdFALSE;
+	}
+
+	UD_printf("pwmVal == %d\n", pwmVal);
+	return pdFALSE;
 }
 
 /**
@@ -144,6 +164,7 @@ BaseType_t F_Set_joystickR(char *pcWriteBuffer, size_t xWriteBufferLen, const ch
 
 	return pdFALSE; // 结束执行
 }
+
 #include "chassis_driver.h"
 extern uni_wheel_t wheels[4];
 BaseType_t F_wheel_offset(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) 
