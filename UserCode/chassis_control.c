@@ -21,7 +21,7 @@ uni_wheel_t wheels[4];
 
 void ChassisTask(void const *argument)
 {
-	const UC_Data_t *RxData = argument;
+	// const UC_Data_t *RxData = argument;
 	Chassis_Init(wheels);
 	double joystick_lx, joystick_ly, joystick_rx, joystick_ry;
 
@@ -29,10 +29,10 @@ void ChassisTask(void const *argument)
 
 	for (;;)
 	{
-		joystick_lx = RxData->Leftx;
-		joystick_ly = RxData->Lefty;
-		joystick_rx = RxData->Rightx;
-		joystick_ry = RxData->Righty;
+		// joystick_lx = RxData->Leftx;
+		// joystick_ly = RxData->Lefty;
+		// joystick_rx = RxData->Rightx;
+		// joystick_ry = RxData->Righty;
 
 		if (fabs(joystick_lx) < 500) joystick_lx = 0;
 		if (fabs(joystick_ly) < 500) joystick_ly = 0;
@@ -66,11 +66,11 @@ void ChassisTestTask(void const *argument)
 	
 }
 
-void ChassisTaskStart(UC_Data_t *RxData)
-{
-	osThreadDef(chassis, ChassisTask, osPriorityBelowNormal, 0, 256);
-	osThreadCreate(osThread(chassis), RxData);
+// void ChassisTaskStart(UC_Data_t *RxData)
+// {
+// 	osThreadDef(chassis, ChassisTask, osPriorityBelowNormal, 0, 256);
+// 	osThreadCreate(osThread(chassis), RxData);
 
-	// osThreadDef(chassis_test, ChassisTestTask, osPriorityBelowNormal, 0, 256);
-	// osThreadCreate(osThread(chassis_test), NULL);
-}
+// 	// osThreadDef(chassis_test, ChassisTestTask, osPriorityBelowNormal, 0, 256);
+// 	// osThreadCreate(osThread(chassis_test), NULL);
+// }

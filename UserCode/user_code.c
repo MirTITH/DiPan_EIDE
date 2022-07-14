@@ -26,7 +26,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include "wtr_can.h"
 #include "Caculate.h"
 #include "vesc.h"
-#include "uart_com.h"
+// #include "uart_com.h"
 #include "string.h"
 #include <stdbool.h>
 #include "chassis_control.h"
@@ -37,7 +37,7 @@ bool pnt_UC_Debug_Data = false;
 
 void TestTask(void const *argument);
 
-UC_Data_t RxData = {0};
+// UC_Data_t RxData = {0};
 
 void StartDefaultTask(void const *argument)
 {
@@ -58,14 +58,14 @@ void StartDefaultTask(void const *argument)
 	hDJI[6].motorType = M2006;
 	hDJI[7].motorType = M2006;
 	DJI_Init();
-	UC_Receive_Start(1, &huart6, &RxData);
-	ChassisTaskStart(&RxData);
+	// UC_Receive_Start(1, &huart6, &RxData);
+	// ChassisTaskStart(&RxData);
 
 	// ADS1256_Init();
 
 	while (1)
 	{
-		UC_Send(1, &huart1, &RxData);
+		// UC_Send(1, &huart1, &RxData);
 		osDelay(10);
 	}
 }
@@ -76,9 +76,9 @@ void TestTask(void const *argument)
 	{
 		if (pnt_UC_Debug_Data)
 		{
-			UC_print_debug_data();
-			UD_printf("lx:%5d ly:%5d rx:%5d ry:%5d ", RxData.Leftx, RxData.Lefty, RxData.Rightx, RxData.Righty);
-			UD_printf("but:%x\n", RxData.buttons);
+			// UC_print_debug_data();
+			// UD_printf("lx:%5d ly:%5d rx:%5d ry:%5d ", RxData.Leftx, RxData.Lefty, RxData.Rightx, RxData.Righty);
+			// UD_printf("but:%x\n", RxData.buttons);
 		}
 		// UD_printf("fix counter: %d\n", fix_counter);
 		osDelay(200);
