@@ -2,7 +2,7 @@
  * @file wtr_mavlink.h
  * @author TITH (1023515576@qq.com)
  * @brief 移植到 stm32 的 mavlink，只需要包含这个头文件就够了
- * @version 0.1
+ * @version 0.2
  * @date 2022-07-15
  *
  * @copyright Copyright (c) 2022
@@ -22,8 +22,6 @@ static mavlink_system_t mavlink_system = {
 
 #define MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
-
-
 typedef struct
 {
 	UART_HandleTypeDef *huart;
@@ -31,12 +29,12 @@ typedef struct
 	mavlink_channel_t chan;
 	mavlink_message_t msg;
 	mavlink_status_t status;
-}WTR_MAVLink_handle_t;
+} WTR_MAVLink_handle_t;
 
 extern WTR_MAVLink_handle_t hMAVLink[MAVLINK_COMM_NUM_BUFFERS];
 
 void WTR_MAVLink_Init(UART_HandleTypeDef *huart, mavlink_channel_t chan);
-void WTR_MAVLink_RcvStart(UART_HandleTypeDef *huart, mavlink_channel_t chan);
+void WTR_MAVLink_RcvStart(mavlink_channel_t chan);
 void WTR_MAVLink_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS

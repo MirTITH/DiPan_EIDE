@@ -59,7 +59,7 @@ void StartDefaultTask(void const *argument)
 	hDJI[7].motorType = M2006;
 	DJI_Init();
 	
-	WTR_MAVLink_RcvStart(&huart6, 0);
+	WTR_MAVLink_RcvStart(MAVLINK_COMM_0);
 	// ChassisTaskStart(&RxData);
 
 	// ADS1256_Init();
