@@ -26,7 +26,6 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include "wtr_can.h"
 #include "Caculate.h"
 #include "vesc.h"
-// #include "uart_com.h"
 #include "string.h"
 #include <stdbool.h>
 #include "chassis_control.h"
@@ -34,11 +33,11 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
 // extern int fix_counter;
 
-bool pnt_UC_Debug_Data = false;
+bool pnt_UC_Debug_Data = true;
 
 void TestTask(void const *argument);
 
-// UC_Data_t RxData = {0};
+mavlink_controller_t ControllerData = {0};
 
 void StartDefaultTask(void const *argument)
 {
@@ -59,7 +58,8 @@ void StartDefaultTask(void const *argument)
 	hDJI[6].motorType = M2006;
 	hDJI[7].motorType = M2006;
 	DJI_Init();
-	// UC_Receive_Start(1, &huart6, &RxData);
+	
+	WTR_MAVLink_RcvStart(&huart6, 0);
 	// ChassisTaskStart(&RxData);
 
 	// ADS1256_Init();
@@ -78,8 +78,8 @@ void TestTask(void const *argument)
 		if (pnt_UC_Debug_Data)
 		{
 			// UC_print_debug_data();
-			// UD_printf("lx:%5d ly:%5d rx:%5d ry:%5d ", RxData.Leftx, RxData.Lefty, RxData.Rightx, RxData.Righty);
-			// UD_printf("but:%x\n", RxData.buttons);
+			UD_printf("lx:%5d ly:%5d rx:%5d ry:%5d ", ControllerData.left_x, ControllerData.left_y, ControllerData.right_x, ControllerData.right_y);
+			UD_printf("but:%x\n", ControllerData.buttons);
 		}
 		// UD_printf("fix counter: %d\n", fix_counter);
 		osDelay(200);

@@ -6,8 +6,8 @@
 
 #include "main.h"
 #include "uart_device.h"
-// #include "uart_com.h"
 #include "chassis_driver.h"
+#include "wtr_mavlink.h"
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -17,8 +17,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	UD_RxCpltCallback(huart);
-	// UC_RxCpltCallback(huart);
-
+	WTR_MAVLink_UART_RxCpltCallback(huart);
 }
 
 extern uni_wheel_t wheels[4];
@@ -47,4 +46,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		break;
 	}
 */
+}
+
+extern mavlink_controller_t ControllerData;
+void WTR_MAVLink_Msg_RxCpltCallback(mavlink_message_t *msg)
+{
+	switch (msg->msgid)
+	{
+	case 1:
+		mavlink_msg_controller_decode(msg, &ControllerData);
+		break;
+
+	default:
+		break;
+	}
 }
