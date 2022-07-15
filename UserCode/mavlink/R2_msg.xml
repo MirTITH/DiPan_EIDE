@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<mavlink>
+  <version>3</version>
+  <messages>
+    <message id="1" name="Controller">
+      <description>WTR 2022 remote controller</description>
+      <field type="int16_t" name="left_x">左摇杆x，0为原点，向右为正</field>
+      <field type="int16_t" name="left_y">左摇杆y，0为原点，向上为正</field>
+      <field type="int16_t" name="right_x">右摇杆x，0为原点，向右为正</field>
+      <field type="int16_t" name="right_y">右摇杆y，0为原点，向上为正</field>
+      <field type="uint8_t" name="buttons">按钮，次序：76543210</field>
+    </message>
+    <message id="2" name="Upper">
+      <description>WTR 2022 remote controller</description>
+      <field type="uint8_t" name="servo_type">伺服类型（0：位置；1：速度）位置从低到高: lift, claw_OC_DJI, claw_spin</field>
+      <field type="float" name="lift">升降架伺服，向上为正</field>
+      <field type="float" name="claw_OC_DJI">爪子张闭（大疆电机），正为张开</field>
+      <field type="float" name="claw_spin">爪子旋转，正为顺时针（角速度方向向前）</field>
+      <field type="int32_t" name="claw_OC_L">爪子左舵机 PWM 脉冲宽度</field>
+      <field type="int32_t" name="claw_OC_R">爪子右舵机 PWM 脉冲宽度</field>
+      <field type="uint8_t" name="vice_lift">副升降，1为升</field>
+    </message>
+  </messages>
+</mavlink>
