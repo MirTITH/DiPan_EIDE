@@ -35,6 +35,7 @@ typedef struct
 
 extern WTR_MAVLink_handle_t hMAVLink[MAVLINK_COMM_NUM_BUFFERS];
 
+void WTR_MAVLink_Init(UART_HandleTypeDef *huart, mavlink_channel_t chan);
 void WTR_MAVLink_RcvStart(UART_HandleTypeDef *huart, mavlink_channel_t chan);
 void WTR_MAVLink_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 

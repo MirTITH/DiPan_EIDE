@@ -95,6 +95,18 @@ void WTR_MAVLink_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 
 /**
+ * @brief 初始化收发通道
+ * 
+ * @param huart 
+ * @param chan 
+ */
+void WTR_MAVLink_Init(UART_HandleTypeDef *huart, mavlink_channel_t chan)
+{
+	hMAVLink[chan].huart = huart;
+	hMAVLink[chan].chan = chan;
+}
+
+/**
  * @brief 
  * 
  * @param huart 
@@ -103,7 +115,5 @@ void WTR_MAVLink_UART_RxCpltCallback(UART_HandleTypeDef *huart)
  */
 void WTR_MAVLink_RcvStart(UART_HandleTypeDef *huart, mavlink_channel_t chan)
 {
-	hMAVLink[chan].huart = huart;
-	hMAVLink[chan].chan = chan;
 	HAL_UART_Receive_IT(hMAVLink[chan].huart, &hMAVLink[chan].rx_ch, 1);
 }
