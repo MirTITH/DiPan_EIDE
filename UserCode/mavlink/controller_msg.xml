@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<mavlink>
+  <version>3</version>
+  <messages>
+    <message id="1" name="Controller">
+      <description>WTR 2022 remote controller</description>
+      <field type="int16_t" name="left_x">左摇杆x，0为原点，向右为正</field>
+      <field type="int16_t" name="left_y">左摇杆y，0为原点，向上为正</field>
+      <field type="int16_t" name="right_x">右摇杆x，0为原点，向右为正</field>
+      <field type="int16_t" name="right_y">右摇杆y，0为原点，向上为正</field>
+      <field type="uint8_t" name="buttons">按钮，次序：76543210</field>
+    </message>
+  </messages>
+</mavlink>

@@ -30,6 +30,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include "string.h"
 #include <stdbool.h>
 #include "chassis_control.h"
+#include "wtr_mavlink.h"
 
 // extern int fix_counter;
 
