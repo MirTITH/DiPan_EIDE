@@ -43,8 +43,8 @@ void TestTask(void const *argument);
 void StartDefaultTask(void const *argument)
 {
 	osDelay(500);
-	CLI_Init(&huart2);
-	UD_SetPrintfDevice(UD_Find(&huart2));
+	CLI_Init(&huart3);
+	UD_SetPrintfDevice(UD_Find(&huart3));
 
 	osThreadDef(testTask, TestTask, osPriorityNormal, 0, 256);
 	osThreadCreate(osThread(testTask), NULL);

@@ -38,7 +38,7 @@ inline static void WTR_MAVLINK_SEND_UART_BYTES(mavlink_channel_t chan, const uin
 	switch (chan)
 	{
 	case MAVLINK_COMM_0:
-		huart = &huart1;
+		huart = &huart6;
 		break;
 	case MAVLINK_COMM_1:
 		// huart = 
