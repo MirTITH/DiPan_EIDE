@@ -30,6 +30,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include <stdbool.h>
 #include "chassis_control.h"
 #include "wtr_mavlink.h"
+#include "upper_com.h"
 
 // extern int fix_counter;
 
@@ -61,7 +62,8 @@ void StartDefaultTask(void const *argument)
 	
 	WTR_MAVLink_RcvStart(MAVLINK_COMM_0);
 	// ChassisTaskStart(&RxData);
-
+	UpperComTaskInit();
+	UpperComTaskStart(NULL);
 	// ADS1256_Init();
 
 	while (1)
