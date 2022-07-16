@@ -41,7 +41,7 @@ inline void WTR_MAVLink_Rcv(WTR_MAVLink_handle_t *hmav)
  * @param buf
  * @param len
  */
-void WTR_MAVLINK_SEND_UART_BYTES(mavlink_channel_t chan, const uint8_t *buf, uint16_t len)
+inline void WTR_MAVLINK_SEND_UART_BYTES(mavlink_channel_t chan, const uint8_t *buf, uint16_t len)
 {
 	UART_HandleTypeDef *huart = NULL;
 
@@ -52,6 +52,7 @@ void WTR_MAVLINK_SEND_UART_BYTES(mavlink_channel_t chan, const uint8_t *buf, uin
 
 	if (huart != NULL)
 	{
+		// while (HAL_UART_Transmit_DMA(huart, (uint8_t *)buf, len) == HAL_BUSY);
 		HAL_UART_Transmit(huart, (uint8_t *)buf, len, HAL_MAX_DELAY);
 	}
 }

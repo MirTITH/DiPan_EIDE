@@ -14,6 +14,11 @@
 
 mavlink_upper_t UpperTxData;
 
+void UpperComTaskInit()
+{
+	WTR_MAVLink_Init(&huart3, 1);
+}
+
 void UpperComTask(void const *argument)
 {
 	uint32_t PreviousWakeTime = osKernelSysTick();
@@ -21,8 +26,9 @@ void UpperComTask(void const *argument)
 	UpperTxData.claw_OC_R = 1000;
 	for (;;)
 	{
+		UpperTxData.claw_OC_R++;
 		mavlink_msg_upper_send_struct(1, &UpperTxData);
-		osDelayUntil(&PreviousWakeTime, 5);
+		osDelayUntil(&PreviousWakeTime, 1);
 	}	
 }
 
@@ -32,7 +38,3 @@ void UpperComTaskStart(void *argument)
 	osThreadCreate(osThread(UpperCom), argument);
 }
 
-void UpperComTaskInit()
-{
-	WTR_MAVLink_Init(&huart4, 1);
-}

@@ -42,9 +42,8 @@ mavlink_controller_t ControllerData = {0};
 
 void StartDefaultTask(void const *argument)
 {
-	osDelay(500);
-	CLI_Init(&huart3);
-	UD_SetPrintfDevice(UD_Find(&huart3));
+	CLI_Init(&huart6);
+	UD_SetPrintfDevice(UD_Find(&huart6));
 
 	osThreadDef(testTask, TestTask, osPriorityNormal, 0, 256);
 	osThreadCreate(osThread(testTask), NULL);
@@ -60,7 +59,7 @@ void StartDefaultTask(void const *argument)
 	hDJI[7].motorType = M2006;
 	DJI_Init();
 	
-	WTR_MAVLink_RcvStart(MAVLINK_COMM_0);
+	// WTR_MAVLink_RcvStart(MAVLINK_COMM_0);
 	// ChassisTaskStart(&RxData);
 	UpperComTaskInit();
 	UpperComTaskStart(NULL);
@@ -69,7 +68,7 @@ void StartDefaultTask(void const *argument)
 	while (1)
 	{
 		// UC_Send(1, &huart1, &RxData);
-		osDelay(10);
+		osDelay(1000);
 	}
 }
 
