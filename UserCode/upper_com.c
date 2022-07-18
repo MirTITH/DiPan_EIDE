@@ -14,22 +14,25 @@
 
 mavlink_upper_t UpperTxData;
 
+#define ServoTypePos 0
+#define ServoTypeSpeed 1
+
 void UpperComTaskInit()
 {
-	WTR_MAVLink_Init(&huart3, 1);
+	WTR_MAVLink_Init(&huart1, MAVLINK_COMM_1);
 }
 
 void UpperComTask(void const *argument)
 {
 	uint32_t PreviousWakeTime = osKernelSysTick();
-	UpperTxData.claw_OC_L = 500;
-	UpperTxData.claw_OC_R = 1000;
+	UpperTxData.servo_type = (ServoTypePos << 0) |
+							 (ServoTypeSpeed << 1) |
+							 (ServoTypePos << 2);
 	for (;;)
 	{
-		UpperTxData.claw_OC_R++;
-		mavlink_msg_upper_send_struct(1, &UpperTxData);
-		osDelayUntil(&PreviousWakeTime, 1);
-	}	
+		mavlink_msg_upper_send_struct(MAVLINK_COMM_1, &UpperTxData);
+		osDelayUntil(&PreviousWakeTime, 2);
+	}
 }
 
 void UpperComTaskStart(void *argument)

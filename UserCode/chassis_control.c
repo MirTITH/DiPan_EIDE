@@ -4,9 +4,9 @@
  * @brief 底盘控制
  * @version 0.1
  * @date 2022-07-09
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include "chassis_control.h"
@@ -21,7 +21,8 @@ uni_wheel_t wheels[4];
 
 void ChassisTask(void const *argument)
 {
-	// const UC_Data_t *RxData = argument;
+	const mavlink_controller_t *ctrl_data = argument;
+
 	Chassis_Init(wheels);
 	double joystick_lx, joystick_ly, joystick_rx, joystick_ry;
 
@@ -29,20 +30,24 @@ void ChassisTask(void const *argument)
 
 	for (;;)
 	{
-		// joystick_lx = RxData->Leftx;
-		// joystick_ly = RxData->Lefty;
-		// joystick_rx = RxData->Rightx;
-		// joystick_ry = RxData->Righty;
+		joystick_lx = ctrl_data->left_x;
+		joystick_ly = ctrl_data->left_y;
+		joystick_rx = ctrl_data->right_x;
+		joystick_ry = ctrl_data->right_y;
 
-		if (fabs(joystick_lx) < 500) joystick_lx = 0;
-		if (fabs(joystick_ly) < 500) joystick_ly = 0;
-		if (fabs(joystick_rx) < 500) joystick_rx = 0;
-		if (fabs(joystick_ry) < 500) joystick_ry = 0;
+		if (fabs(joystick_lx) < 500)
+			joystick_lx = 0;
+		if (fabs(joystick_ly) < 500)
+			joystick_ly = 0;
+		if (fabs(joystick_rx) < 500)
+			joystick_rx = 0;
+		if (fabs(joystick_ry) < 500)
+			joystick_ry = 0;
 
 		Chassis_SetSpeed(wheels, 4, joystick_lx / 2048.0, joystick_ly / 2048.0, joystick_rx / 2048.0);
 
 		osDelayUntil(&PreviousWakeTime, 2);
-	}	
+	}
 }
 
 void ChassisTestTask(void const *argument)
@@ -63,14 +68,13 @@ void ChassisTestTask(void const *argument)
 		UD_printf("\n");
 		osDelay(200);
 	}
-	
 }
 
-// void ChassisTaskStart(UC_Data_t *RxData)
-// {
-// 	osThreadDef(chassis, ChassisTask, osPriorityBelowNormal, 0, 256);
-// 	osThreadCreate(osThread(chassis), RxData);
+void ChassisTaskStart(mavlink_controller_t *ctrl_data)
+{
+	osThreadDef(chassis, ChassisTask, osPriorityBelowNormal, 0, 256);
+	osThreadCreate(osThread(chassis), ctrl_data);
 
-// 	// osThreadDef(chassis_test, ChassisTestTask, osPriorityBelowNormal, 0, 256);
-// 	// osThreadCreate(osThread(chassis_test), NULL);
-// }
+	// osThreadDef(chassis_test, ChassisTestTask, osPriorityBelowNormal, 0, 256);
+	// osThreadCreate(osThread(chassis_test), NULL);
+}

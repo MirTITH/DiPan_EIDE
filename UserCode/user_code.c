@@ -42,32 +42,30 @@ mavlink_controller_t ControllerData = {0};
 
 void StartDefaultTask(void const *argument)
 {
-	CLI_Init(&huart6);
-	UD_SetPrintfDevice(UD_Find(&huart6));
+	CLI_Init(&huart2);
+	UD_SetPrintfDevice(UD_Find(&huart2));
 
 	osThreadDef(testTask, TestTask, osPriorityNormal, 0, 256);
 	osThreadCreate(osThread(testTask), NULL);
 
 	//大疆电机初始化
 	CANFilterInit(&hcan1);
-	// hDJI[0].motorType = M3508; // 爪子
-	// hDJI[1].motorType = M2006;
-	// hDJI[2].motorType = M3508; // 升降
 	hDJI[4].motorType = M2006;
 	hDJI[5].motorType = M2006;
 	hDJI[6].motorType = M2006;
 	hDJI[7].motorType = M2006;
 	DJI_Init();
 	
-	// WTR_MAVLink_RcvStart(MAVLINK_COMM_0);
-	// ChassisTaskStart(&RxData);
+	WTR_MAVLink_Init(&huart6, MAVLINK_COMM_0);
+	WTR_MAVLink_RcvStart(MAVLINK_COMM_0);
+	ChassisTaskStart(&ControllerData);
+	
 	UpperComTaskInit();
-	UpperComTaskStart(NULL);
+	UpperComTaskStart(&ControllerData);
 	// ADS1256_Init();
 
 	while (1)
 	{
-		// UC_Send(1, &huart1, &RxData);
 		osDelay(1000);
 	}
 }

@@ -56,7 +56,6 @@ void WTR_MAVLink_Msg_RxCpltCallback(mavlink_message_t *msg)
 	case 1:
 		mavlink_msg_controller_decode(msg, &ControllerData);
 		break;
-
 	default:
 		break;
 	}
