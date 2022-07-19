@@ -34,7 +34,7 @@ void BeepTask(void const *argument)
 	while (xSemaphoreTake(*sem, portMAX_DELAY))
 	{
 		HAL_GPIO_WritePin(BeepPinGPIOx, BeepPinGPIO_Pin, 1);
-		osDelay(150);
+		osDelay(100);
 		HAL_GPIO_WritePin(BeepPinGPIOx, BeepPinGPIO_Pin, 0);
 		osDelay(100);
 	}

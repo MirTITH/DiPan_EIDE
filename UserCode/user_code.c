@@ -84,6 +84,6 @@ void TestTask(void const *argument)
 			UD_printf("but:%x\n", ControllerData.buttons);
 		}
 		// UD_printf("fix counter: %d\n", fix_counter);
-		osDelay(200);
+		osDelay(1000);
 	}
 }
