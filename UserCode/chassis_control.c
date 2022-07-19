@@ -72,7 +72,7 @@ void ChassisTestTask(void const *argument)
 
 void ChassisTaskStart(mavlink_controller_t *ctrl_data)
 {
-	osThreadDef(chassis, ChassisTask, osPriorityBelowNormal, 0, 256);
+	osThreadDef(chassis, ChassisTask, osPriorityBelowNormal, 0, 1024);
 	osThreadCreate(osThread(chassis), ctrl_data);
 
 	// osThreadDef(chassis_test, ChassisTestTask, osPriorityBelowNormal, 0, 256);

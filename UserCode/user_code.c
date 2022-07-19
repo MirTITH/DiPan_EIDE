@@ -35,7 +35,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
 // extern int fix_counter;
 
-bool pnt_UC_Debug_Data = true;
+bool pnt_UC_Debug_Data = false;
 
 void TestTask(void const *argument);
 
@@ -48,7 +48,7 @@ void StartDefaultTask(void const *argument)
 
 	Beep_Init();
 
-	osThreadDef(testTask, TestTask, osPriorityNormal, 0, 256);
+	osThreadDef(testTask, TestTask, osPriorityNormal, 0, 512);
 	osThreadCreate(osThread(testTask), NULL);
 
 	//大疆电机初始化
