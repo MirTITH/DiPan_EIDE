@@ -22,6 +22,7 @@ mavlink_upper_t UpperTxData;
 typedef struct
 {
 	float lift_pos[6];
+	bool is_vice_lift_up[6];
 	int now_pos_id; // 0-5
 	uint32_t last_up_tick;
 	uint32_t last_down_tick;
@@ -37,8 +38,15 @@ LiftData_t lift_data = {
 	.lift_pos[1] = 1800,
 	.lift_pos[2] = 3600,
 	.lift_pos[3] = 5400,
-	.lift_pos[4] = 6000,
-	.lift_pos[5] = 6200};
+	.lift_pos[4] = 5000,
+	.lift_pos[5] = 5400,
+	.is_vice_lift_up[0] = false,
+	.is_vice_lift_up[1] = false,
+	.is_vice_lift_up[2] = false,
+	.is_vice_lift_up[3] = false,
+	.is_vice_lift_up[4] = true,
+	.is_vice_lift_up[5] = true
+	};
 
 typedef struct
 {
@@ -53,7 +61,7 @@ ClawData_t claw_data = {
 	.is_open = true,
 	.button_min_time = 500,
 	.close_pos = 10,
-	.open_pos = 590};
+	.open_pos = 580};
 
 typedef struct
 {
@@ -88,7 +96,7 @@ ClawSpin_t claw_spin = {
 	.is_face_up = 1,
 	.last_tick = 0,
 	.pos_offset = 0,
-	.pos_turn_over = 30
+	.pos_turn_over = 0
 };
 
 void UpperComTaskInit()
@@ -106,7 +114,7 @@ void UpperComTask(void const *argument)
 	uint32_t PreviousWakeTime = osKernelSysTick();
 	for (;;)
 	{
-		/* 主升降 */
+		/* 升降 */
 		if (ctrl_data->buttons & (1 << 1)) // 主升降升
 		{
 			if (lift_data.last_up_tick + lift_data.button_min_time < HAL_GetTick())
@@ -134,26 +142,28 @@ void UpperComTask(void const *argument)
 		}
 
 		UpperTxData.lift = lift_data.lift_pos[lift_data.now_pos_id];
+		UpperTxData.vice_lift = lift_data.is_vice_lift_up[lift_data.now_pos_id]; // 副升降
+		
 
-		/* 爪子开合DJI */
-		if (ctrl_data->buttons & (1 << 3))
-		{
-			if (claw_data.last_tick + claw_data.button_min_time < HAL_GetTick())
-			{
-				claw_data.last_tick = HAL_GetTick();
-				claw_data.is_open = !claw_data.is_open;
-				// UD_printf("is_open:%d\n", claw_data.is_open);
-			}
-		}
+		// /* 爪子开合DJI */
+		// if (ctrl_data->buttons & (1 << 3))
+		// {
+		// 	if (claw_data.last_tick + claw_data.button_min_time < HAL_GetTick())
+		// 	{
+		// 		claw_data.last_tick = HAL_GetTick();
+		// 		claw_data.is_open = !claw_data.is_open;
+		// 		// UD_printf("is_open:%d\n", claw_data.is_open);
+		// 	}
+		// }
 
-		if (claw_data.is_open)
-		{
-			UpperTxData.claw_OC_DJI = claw_data.open_pos;
-		}
-		else
-		{
-			UpperTxData.claw_OC_DJI = claw_data.close_pos;
-		}
+		// if (claw_data.is_open)
+		// {
+		// 	UpperTxData.claw_OC_DJI = claw_data.open_pos;
+		// }
+		// else
+		// {
+		// 	UpperTxData.claw_OC_DJI = claw_data.close_pos;
+		// }
 
 		/* 爪子舵机 */
 		if (HAL_GetTick() > steer_engine.L_open_tick)

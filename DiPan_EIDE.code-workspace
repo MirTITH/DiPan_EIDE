@@ -18,7 +18,8 @@
             "*.cpp": "cpp",
             "*.cxx": "cpp",
             "*.cc": "cpp",
-            "*.bak": "c"
+            "*.bak": "c",
+            "PID.H": "cpp"
         },
         "[yaml]": {
             "editor.insertSpaces": true,
