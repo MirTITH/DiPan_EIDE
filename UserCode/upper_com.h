@@ -9,5 +9,8 @@
  *
  */
 #pragma once
+
+#include "wtr_mavlink.h"
+
 void UpperComTaskInit();
-void UpperComTaskStart(void *argument);
+void UpperComTaskStart(mavlink_controller_t *ctrl_data);

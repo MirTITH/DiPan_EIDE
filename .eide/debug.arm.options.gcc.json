@@ -19,6 +19,6 @@
         "output-format": "elf",
         "remove-unused-input-sections": true,
         "LD_FLAGS": "--specs=nosys.specs --specs=nano.specs",
-        "LIB_FLAGS": "-lm"
+        "LIB_FLAGS": "-lm -u _printf_float"
     }
 }

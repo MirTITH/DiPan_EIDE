@@ -31,6 +31,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 #include "chassis_control.h"
 #include "wtr_mavlink.h"
 #include "upper_com.h"
+#include "beep.h"
 
 // extern int fix_counter;
 
@@ -44,6 +45,8 @@ void StartDefaultTask(void const *argument)
 {
 	CLI_Init(&huart2);
 	UD_SetPrintfDevice(UD_Find(&huart2));
+
+	Beep_Init();
 
 	osThreadDef(testTask, TestTask, osPriorityNormal, 0, 256);
 	osThreadCreate(osThread(testTask), NULL);
