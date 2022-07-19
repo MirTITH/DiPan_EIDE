@@ -24,7 +24,7 @@ extern uni_wheel_t wheels[4];
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-/* 	switch (GPIO_Pin)
+	switch (GPIO_Pin)
 	{
 	case GPIO_PIN_9:
 		Wheel_Hall_Callback(GPIOE, GPIO_Pin, &wheels[0]);
@@ -45,7 +45,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		// printf("EXTI %d\n", GPIO_Pin);
 		break;
 	}
-*/
+
 }
 
 extern mavlink_controller_t ControllerData;

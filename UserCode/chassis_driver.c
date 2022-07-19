@@ -124,15 +124,22 @@ void Wheel_Hall_Callback(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, uni_wheel_t *wh
 	{
 		Wheel_ReadNowRotPos(wheel);
 		wheel->hall_on_pos = wheel->now_rot_pos;
+		wheel->hall_on_flag = true;
 	}
 	else
 	{
-		Wheel_ReadNowRotPos(wheel);
-		wheel->hall_off_pos = wheel->now_rot_pos;
-		double hall_pos = (wheel->hall_on_pos + wheel->hall_off_pos) / 2;
-		double delta_angle = LoopSimplify(2 * M_PI, hall_pos - wheel->hall_angle);
-		wheel->rot_pos_offset += delta_angle;
-		Wheel_ReadNowRotPos(wheel);
+		if (wheel->hall_on_flag)
+		{
+			wheel->hall_on_flag = false;
+			Wheel_ReadNowRotPos(wheel);
+			wheel->hall_off_pos = wheel->now_rot_pos;
+			double hall_avg_pos = (wheel->hall_on_pos + wheel->hall_off_pos) / 2;
+			double delta_angle = LoopSimplify(2 * M_PI, hall_avg_pos - wheel->hall_angle);
+			wheel->rot_pos_offset += delta_angle;
+			Wheel_ReadNowRotPos(wheel);
+		}
+		
+		
 	}
 }
 
@@ -176,12 +183,7 @@ void Chassis_Init(uni_wheel_t *wheel)
 	wheel[1].hDJI = &hDJI[5];
 	wheel[2].hDJI = &hDJI[6];
 	wheel[3].hDJI = &hDJI[7];
-	
-	// 霍尔还没写
-	// wheel[0].hall_GPIO_PINx;
-	// wheel[1].hall_GPIO_PINx;
-	// wheel[2].hall_GPIO_PINx;
-	// wheel[3].hall_GPIO_PINx;
+
 
 	wheel[0].hvesc.hcann = &hcan1;
 	wheel[0].hvesc.controller_id = 0x00;
@@ -191,6 +193,11 @@ void Chassis_Init(uni_wheel_t *wheel)
 	wheel[2].hvesc.controller_id = 0x02;
 	wheel[3].hvesc.hcann = &hcan1;
 	wheel[3].hvesc.controller_id = 0x03;
+
+	wheel[0].hall_angle = 225.0 / 180 * M_PI;
+	wheel[1].hall_angle = 225.0 / 180 * M_PI;
+	wheel[2].hall_angle = 225.0 / 180 * M_PI;
+	wheel[3].hall_angle = 45.0 / 180 * M_PI;
 
 	for (int i = 0; i < 4; i++)
 	{
