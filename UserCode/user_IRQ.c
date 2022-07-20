@@ -8,9 +8,6 @@
 #include "uart_device.h"
 #include "chassis_driver.h"
 #include "wtr_mavlink.h"
-#include "HWT101CT.h"
-
-extern HWT_Handle_t hhwt1;
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -20,7 +17,6 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	WTR_MAVLink_UART_RxCpltCallback(huart);
-	HWT_UART_RxCpltCallback(&hhwt1, huart);
 	UD_RxCpltCallback(huart);
 }
 

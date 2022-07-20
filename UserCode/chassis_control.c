@@ -16,22 +16,10 @@
 #include "DJI.h"
 #include "math.h"
 #include "uart_device.h"
-#include "HWT101CT.h"
-#include "GeneralPID.h"
 
 #define rx_DEADBAND 100.0
 
-HWT_Handle_t hhwt1;
 uni_wheel_t wheels[4];
-
-typedef struct
-{
-	float Yaw_zero; // 机器人初始化时的 YAW
-	float exp_Yaw; // 期望角度（相对于 Yaw_zero）
-	GenPID_t pid;
-} Gyro_t;
-
-Gyro_t gyro = {0};
 
 void DeadBand(double x, double y, double *new_x, double *new_y, double threshould)
 {
@@ -55,20 +43,12 @@ void ChassisTask(void const *argument)
 {
 	const mavlink_controller_t *ctrl_data = argument;
 	Chassis_Init(wheels);
-	HWT_Init(&hhwt1, &huart4);
 	double vx, vy, vrow;
 	double speed_ratio = 1.0 / 1024.0;
 	double spin_ratio = 1.0 / 1024.0;
 	double lx, ly, rx;
 
 	osDelay(500);
-
-	gyro.pid.KP = 1;
-	gyro.pid.KI = 0;
-	gyro.pid.KD = 0;
-	gyro.pid.outputMax = 0.5;
-	gyro.pid.outputMin = 0;
-	gyro.Yaw_zero = HWT_ReadYawRad(&hhwt1);
 
 	uint32_t PreviousWakeTime = osKernelSysTick();
 
@@ -96,10 +76,6 @@ void ChassisTask(void const *argument)
 			}
 		}
 
-		GenPID_Servo(gyro.exp_Yaw , HWT_ReadYawRad(&hhwt1) - gyro.Yaw_zero, &gyro.pid);
-
-		// UD_printf("vx:%g vy:%g r:%g\n", vx, vy, vrow);
-
 		Chassis_SetSpeed(wheels, 4, vx, vy, vrow);
 
 		osDelayUntil(&PreviousWakeTime, 2);
@@ -121,7 +97,6 @@ void ChassisTestTask(void const *argument)
 		{
 			UD_printf("%6.2lf ", wheels[i].exp_rot_pos);
 		}
-		UD_printf("Yaw:%g\n", HWT_ReadYawRad(&hhwt1));
 		UD_printf("\n");
 		osDelay(200);
 	}
