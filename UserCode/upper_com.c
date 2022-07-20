@@ -216,14 +216,14 @@ void UpperTestTask(void const *argument)
 {
 	while (1)
 	{
-		UD_printf("claw(DJI:%g L:%d R:%d spin:%g) lift:%g vice:%u type:%x\n",
-				  UpperTxData.claw_OC_DJI,
-				  UpperTxData.claw_OC_L,
-				  UpperTxData.claw_OC_R,
-				  UpperTxData.claw_spin,
-				  UpperTxData.lift,
-				  UpperTxData.vice_lift,
-				  UpperTxData.servo_type);
+		// UD_printf("claw(DJI:%g L:%d R:%d spin:%g) lift:%g vice:%u type:%x\n",
+		// 		  UpperTxData.claw_OC_DJI,
+		// 		  UpperTxData.claw_OC_L,
+		// 		  UpperTxData.claw_OC_R,
+		// 		  UpperTxData.claw_spin,
+		// 		  UpperTxData.lift,
+		// 		  UpperTxData.vice_lift,
+		// 		  UpperTxData.servo_type);
 		osDelay(200);
 	}
 }

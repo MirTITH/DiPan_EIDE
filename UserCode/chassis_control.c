@@ -51,6 +51,8 @@ void DeadBand(double x, double y, double *new_x, double *new_y, double threshoul
 	*new_y = y * k;
 }
 
+#define ChassisTaskCycle 2 // 底盘控制周期
+
 void ChassisTask(void const *argument)
 {
 	const mavlink_controller_t *ctrl_data = argument;
@@ -64,7 +66,7 @@ void ChassisTask(void const *argument)
 	osDelay(500);
 
 	gyro.pid.KP = 1;
-	gyro.pid.KI = 0;
+	gyro.pid.KI = 0.01;
 	gyro.pid.KD = 0;
 	gyro.pid.outputMax = 0.5;
 	gyro.pid.outputMin = 0;
@@ -96,13 +98,15 @@ void ChassisTask(void const *argument)
 			}
 		}
 
+		gyro.exp_Yaw += vrow * (ChassisTaskCycle / 1000.0);
+
 		GenPID_Servo(gyro.exp_Yaw , HWT_ReadYawRad(&hhwt1) - gyro.Yaw_zero, &gyro.pid);
 
 		// UD_printf("vx:%g vy:%g r:%g\n", vx, vy, vrow);
 
-		Chassis_SetSpeed(wheels, 4, vx, vy, vrow);
+		Chassis_SetSpeed(wheels, 4, vx, vy, gyro.pid.output);
 
-		osDelayUntil(&PreviousWakeTime, 2);
+		osDelayUntil(&PreviousWakeTime, ChassisTaskCycle);
 	}
 }
 
@@ -110,18 +114,21 @@ void ChassisTestTask(void const *argument)
 {
 	while (1)
 	{
-		UD_printf("speed:");
-		for (int i = 0; i < 4; i++)
-		{
-			UD_printf("%6.2lf ", wheels[i].exp_speed);
-		}
+		// UD_printf("speed:");
+		// for (int i = 0; i < 4; i++)
+		// {
+		// 	UD_printf("%6.2lf ", wheels[i].exp_speed);
+		// }
 
-		UD_printf("rot_pos:");
-		for (int i = 0; i < 4; i++)
-		{
-			UD_printf("%6.2lf ", wheels[i].exp_rot_pos);
-		}
-		UD_printf("Yaw:%g\n", HWT_ReadYawRad(&hhwt1));
+		// UD_printf("rot_pos:");
+		// for (int i = 0; i < 4; i++)
+		// {
+		// 	UD_printf("%6.2lf ", wheels[i].exp_rot_pos);
+		// }
+		// UD_printf("Yaw:%g\n", HWT_ReadYawRad(&hhwt1));
+
+		UD_printf("output:%f exp:%f fdb:%f", gyro.pid.output, gyro.exp_Yaw, HWT_ReadYawRad(&hhwt1) - gyro.Yaw_zero);
+
 		UD_printf("\n");
 		osDelay(200);
 	}
@@ -132,6 +139,6 @@ void ChassisTaskStart(mavlink_controller_t *ctrl_data)
 	osThreadDef(chassis, ChassisTask, osPriorityBelowNormal, 0, 1024);
 	osThreadCreate(osThread(chassis), ctrl_data);
 
-	// osThreadDef(chassis_test, ChassisTestTask, osPriorityBelowNormal, 0, 256);
-	// osThreadCreate(osThread(chassis_test), NULL);
+	osThreadDef(chassis_test, ChassisTestTask, osPriorityBelowNormal, 0, 256);
+	osThreadCreate(osThread(chassis_test), NULL);
 }
