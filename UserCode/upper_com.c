@@ -21,11 +21,12 @@ mavlink_upper_t UpperTxData;
 
 #define UpperComCycle 10
 
+#define Lift_Pos_Num 5
 typedef struct
 {
-	float lift_pos[4];
-	bool is_vice_lift_up[4];
-	int now_pos_id; // 0-3
+	float lift_pos[Lift_Pos_Num];
+	bool is_vice_lift_up[Lift_Pos_Num];
+	int now_pos_id; // 0 ~ (Lift_Pos_Num - 1)
 	uint32_t last_up_tick;
 	uint32_t last_down_tick;
 	uint32_t button_min_time;
@@ -37,15 +38,15 @@ LiftData_t lift_data = {
 	.button_min_time = 300,
 	.now_pos_id = 0,
 	.lift_pos[0] = 0,
-	.lift_pos[1] = 4500,
-	.lift_pos[2] = 6000,
+	.lift_pos[1] = 3000,
+	.lift_pos[2] = 4500,
 	.lift_pos[3] = 6000,
-	// .lift_pos[4] = 6000,
+	.lift_pos[4] = 6000,
 	.is_vice_lift_up[0] = false,
 	.is_vice_lift_up[1] = false,
 	.is_vice_lift_up[2] = false,
-	.is_vice_lift_up[3] = true,
-	// .is_vice_lift_up[4] = true
+	.is_vice_lift_up[3] = false,
+	.is_vice_lift_up[4] = true
 	};
 
 typedef struct
@@ -63,24 +64,24 @@ ClawData_t claw_data = {
 	.close_pos = 10,
 	.open_pos = 585};
 
-typedef struct
-{
-	int32_t L_open_PW;
-	int32_t L_close_PW;
-	int32_t R_open_PW;
-	int32_t R_close_PW;
-	uint32_t L_open_tick; // 左舵机打开的时刻
-	uint32_t R_open_tick; // 右舵机打开的时刻
-} SteerEngine_t;
+// typedef struct
+// {
+// 	int32_t L_open_PW;
+// 	int32_t L_close_PW;
+// 	int32_t R_open_PW;
+// 	int32_t R_close_PW;
+// 	uint32_t L_open_tick; // 左舵机打开的时刻
+// 	uint32_t R_open_tick; // 右舵机打开的时刻
+// } SteerEngine_t;
 
-SteerEngine_t steer_engine = {
-	.L_close_PW = 1200, // 1076
-	.L_open_PW = 1600,	// 1694
-	.R_close_PW = 1300, // 1195
-	.R_open_PW = 1600,	// 1767
+// SteerEngine_t steer_engine = {
+// 	.L_close_PW = 1200, // 1076
+// 	.L_open_PW = 1600,	// 1694
+// 	.R_close_PW = 1300, // 1195
+// 	.R_open_PW = 1600,	// 1767
 
-	.L_open_tick = 1000,
-	.R_open_tick = 2000};
+// 	.L_open_tick = 1000,
+// 	.R_open_tick = 2000};
 
 typedef struct
 {
@@ -120,7 +121,7 @@ void UpperComTask(void const *argument)
 			if (lift_data.last_up_tick + lift_data.button_min_time < HAL_GetTick())
 			{
 				lift_data.last_up_tick = HAL_GetTick();
-				if (lift_data.now_pos_id < 3)
+				if (lift_data.now_pos_id < Lift_Pos_Num - 1)
 				{
 					lift_data.now_pos_id++;
 					Beep();
@@ -146,7 +147,7 @@ void UpperComTask(void const *argument)
 		
 
 		/* 爪子开合DJI */
-		if (ctrl_data->buttons & (1 << 3))
+		if (ctrl_data->buttons & (1 << 2))
 		{
 			if (claw_data.last_tick + claw_data.button_min_time < HAL_GetTick())
 			{
@@ -165,33 +166,35 @@ void UpperComTask(void const *argument)
 			UpperTxData.claw_OC_DJI = claw_data.close_pos;
 		}
 
-		/* 爪子舵机 */
-		if (HAL_GetTick() > steer_engine.L_open_tick)
-		{
-			UpperTxData.claw_OC_L = steer_engine.L_open_PW;
-		}
-		else
-		{
-			UpperTxData.claw_OC_L = steer_engine.L_close_PW;
-		}
+		// /* 爪子舵机 */
+		// if (HAL_GetTick() > steer_engine.L_open_tick)
+		// {
+		// 	UpperTxData.claw_OC_L = steer_engine.L_open_PW;
+		// }
+		// else
+		// {
+		// 	UpperTxData.claw_OC_L = steer_engine.L_close_PW;
+		// }
 
-		if (HAL_GetTick() > steer_engine.R_open_tick)
-		{
-			UpperTxData.claw_OC_R = steer_engine.R_open_PW;
-		}
-		else
-		{
-			UpperTxData.claw_OC_R = steer_engine.R_close_PW;
-		}
+		// if (HAL_GetTick() > steer_engine.R_open_tick)
+		// {
+		// 	UpperTxData.claw_OC_R = steer_engine.R_open_PW;
+		// }
+		// else
+		// {
+		// 	UpperTxData.claw_OC_R = steer_engine.R_close_PW;
+		// }
 
 		/* 爪子旋转 */
-		if (ctrl_data->buttons & (1 << 2))
+		if (ctrl_data->buttons & (1 << 3))
 		{
-			if (claw_spin.last_tick + claw_spin.button_min_time < HAL_GetTick())
+			if (UpperTxData.lift >= 3000) // 爪子太低时不允许旋转
 			{
-				claw_spin.last_tick = HAL_GetTick();
-				claw_spin.is_face_up = !claw_spin.is_face_up;
-				// UD_printf("is_face_up:%d\n", claw_spin.is_face_up);
+				if (claw_spin.last_tick + claw_spin.button_min_time < HAL_GetTick())
+				{
+					claw_spin.last_tick = HAL_GetTick();
+					claw_spin.is_face_up = !claw_spin.is_face_up;
+				}
 			}
 		}
 
@@ -204,7 +207,6 @@ void UpperComTask(void const *argument)
 		{
 			claw_spin.pos_offset += 20 * (UpperComCycle / 1000.0);
 		}
-		
 
 		if (claw_spin.is_face_up)
 		{

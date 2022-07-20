@@ -20,6 +20,11 @@ void Beep()
 	xSemaphoreGive(BeepSem);
 }
 
+void BeepSet(bool is_on)
+{
+	HAL_GPIO_WritePin(BeepPinGPIOx, BeepPinGPIO_Pin, is_on);
+}
+
 void BeepFromISR()
 {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;

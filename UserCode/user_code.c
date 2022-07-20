@@ -36,6 +36,7 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 // extern int fix_counter;
 
 bool pnt_UC_Debug_Data = false;
+int reboot_counter = 0;
 
 void TestTask(void const *argument);
 
@@ -58,18 +59,37 @@ void StartDefaultTask(void const *argument)
 	hDJI[6].motorType = M2006;
 	hDJI[7].motorType = M2006;
 	DJI_Init();
-	
+
 	WTR_MAVLink_Init(&huart6, MAVLINK_COMM_0);
 	WTR_MAVLink_RcvStart(MAVLINK_COMM_0);
 	ChassisTaskStart(&ControllerData);
-	
+
 	UpperComTaskInit();
 	UpperComTaskStart(&ControllerData);
 	// ADS1256_Init();
 
 	while (1)
 	{
-		osDelay(1000);
+		if ((ControllerData.buttons & (1 << 6)) && (ControllerData.buttons & (1 << 7)))
+		{
+			reboot_counter++;
+			if (reboot_counter > 50)
+			{
+				BeepSet(0);
+				osDelay(500);
+				HAL_NVIC_SystemReset();
+			}
+
+			BeepSet(1);
+		}
+		else
+		{
+			if (reboot_counter != 0)
+				BeepSet(0);
+			reboot_counter = 0;
+		}
+
+		osDelay(10);
 	}
 }
 
