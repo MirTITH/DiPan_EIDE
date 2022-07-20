@@ -19,11 +19,13 @@ mavlink_upper_t UpperTxData;
 #define ServoTypePos 0
 #define ServoTypeSpeed 1
 
+#define UpperComCycle 10
+
 typedef struct
 {
-	float lift_pos[6];
-	bool is_vice_lift_up[6];
-	int now_pos_id; // 0-5
+	float lift_pos[4];
+	bool is_vice_lift_up[4];
+	int now_pos_id; // 0-3
 	uint32_t last_up_tick;
 	uint32_t last_down_tick;
 	uint32_t button_min_time;
@@ -35,17 +37,15 @@ LiftData_t lift_data = {
 	.button_min_time = 300,
 	.now_pos_id = 0,
 	.lift_pos[0] = 0,
-	.lift_pos[1] = 1800,
-	.lift_pos[2] = 3600,
-	.lift_pos[3] = 5400,
-	.lift_pos[4] = 5000,
-	.lift_pos[5] = 5400,
+	.lift_pos[1] = 4500,
+	.lift_pos[2] = 6000,
+	.lift_pos[3] = 6000,
+	// .lift_pos[4] = 6000,
 	.is_vice_lift_up[0] = false,
 	.is_vice_lift_up[1] = false,
 	.is_vice_lift_up[2] = false,
-	.is_vice_lift_up[3] = false,
-	.is_vice_lift_up[4] = true,
-	.is_vice_lift_up[5] = true
+	.is_vice_lift_up[3] = true,
+	// .is_vice_lift_up[4] = true
 	};
 
 typedef struct
@@ -58,10 +58,10 @@ typedef struct
 } ClawData_t;
 
 ClawData_t claw_data = {
-	.is_open = true,
+	.is_open = false,
 	.button_min_time = 500,
 	.close_pos = 10,
-	.open_pos = 580};
+	.open_pos = 585};
 
 typedef struct
 {
@@ -96,7 +96,7 @@ ClawSpin_t claw_spin = {
 	.is_face_up = 1,
 	.last_tick = 0,
 	.pos_offset = 0,
-	.pos_turn_over = 0
+	.pos_turn_over = 330
 };
 
 void UpperComTaskInit()
@@ -120,7 +120,7 @@ void UpperComTask(void const *argument)
 			if (lift_data.last_up_tick + lift_data.button_min_time < HAL_GetTick())
 			{
 				lift_data.last_up_tick = HAL_GetTick();
-				if (lift_data.now_pos_id < 5)
+				if (lift_data.now_pos_id < 3)
 				{
 					lift_data.now_pos_id++;
 					Beep();
@@ -145,25 +145,25 @@ void UpperComTask(void const *argument)
 		UpperTxData.vice_lift = lift_data.is_vice_lift_up[lift_data.now_pos_id]; // 副升降
 		
 
-		// /* 爪子开合DJI */
-		// if (ctrl_data->buttons & (1 << 3))
-		// {
-		// 	if (claw_data.last_tick + claw_data.button_min_time < HAL_GetTick())
-		// 	{
-		// 		claw_data.last_tick = HAL_GetTick();
-		// 		claw_data.is_open = !claw_data.is_open;
-		// 		// UD_printf("is_open:%d\n", claw_data.is_open);
-		// 	}
-		// }
+		/* 爪子开合DJI */
+		if (ctrl_data->buttons & (1 << 3))
+		{
+			if (claw_data.last_tick + claw_data.button_min_time < HAL_GetTick())
+			{
+				claw_data.last_tick = HAL_GetTick();
+				claw_data.is_open = !claw_data.is_open;
+				// UD_printf("is_open:%d\n", claw_data.is_open);
+			}
+		}
 
-		// if (claw_data.is_open)
-		// {
-		// 	UpperTxData.claw_OC_DJI = claw_data.open_pos;
-		// }
-		// else
-		// {
-		// 	UpperTxData.claw_OC_DJI = claw_data.close_pos;
-		// }
+		if (claw_data.is_open)
+		{
+			UpperTxData.claw_OC_DJI = claw_data.open_pos;
+		}
+		else
+		{
+			UpperTxData.claw_OC_DJI = claw_data.close_pos;
+		}
 
 		/* 爪子舵机 */
 		if (HAL_GetTick() > steer_engine.L_open_tick)
@@ -195,6 +195,17 @@ void UpperComTask(void const *argument)
 			}
 		}
 
+		if (ctrl_data->buttons & (1 << 4))
+		{
+			claw_spin.pos_offset -= 20 * (UpperComCycle / 1000.0);
+		}
+
+		if (ctrl_data->buttons & (1 << 5))
+		{
+			claw_spin.pos_offset += 20 * (UpperComCycle / 1000.0);
+		}
+		
+
 		if (claw_spin.is_face_up)
 		{
 			UpperTxData.claw_spin = -claw_spin.pos_offset;
@@ -208,7 +219,7 @@ void UpperComTask(void const *argument)
 		// UD_printf("claw_OC_DJI:%f\n", UpperTxData.claw_OC_DJI);
 
 		mavlink_msg_upper_send_struct(MAVLINK_COMM_1, &UpperTxData);
-		osDelayUntil(&PreviousWakeTime, 10);
+		osDelayUntil(&PreviousWakeTime, UpperComCycle);
 	}
 }
 
