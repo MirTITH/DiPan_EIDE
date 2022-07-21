@@ -47,7 +47,7 @@ void BeepTask(void const *argument)
 
 void Beep_Init()
 {
-	BeepSem = xSemaphoreCreateCounting(100, 0);
+	BeepSem = xSemaphoreCreateCounting(5, 0);
 
 	osThreadDef(beep_task, BeepTask, osPriorityNormal, 0, 128);
 	osThreadCreate(osThread(beep_task), &BeepSem);

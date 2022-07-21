@@ -16,10 +16,20 @@
 #include "DJI.h"
 #include "math.h"
 #include "uart_device.h"
+#include "useful_constant.h"
 
 #define rx_DEADBAND 100.0
 
 uni_wheel_t wheels[4];
+
+double HallCorrectingStartPos[4];
+uint32_t HallCorrectingStartTick;
+
+enum
+{
+	Normal,
+	HallCorrecting
+} RunningState = Normal;
 
 void DeadBand(double x, double y, double *new_x, double *new_y, double threshould)
 {
@@ -37,6 +47,29 @@ void DeadBand(double x, double y, double *new_x, double *new_y, double threshoul
 
 	*new_x = x * k;
 	*new_y = y * k;
+}
+
+/**
+ * @brief 原地转圈霍尔校准
+ * 
+ */
+void Chassis_HallCorrecting(uni_wheel_t *wheel, int num, uint32_t start_tick)
+{
+	double pos = 0;
+
+	pos = (double)(HAL_GetTick() - start_tick) * (2 * M_PI / 1000.0);
+
+	for (int i = 0; i < num; i++)
+	{
+		Wheel_Set(&wheel[i], 0, HallCorrectingStartPos[i] + pos);
+	}
+	// UD_printf("pos:%f\n", pos);
+	
+	if (pos > 1.1 * 2 * M_PI)
+	{
+		RunningState = Normal;
+	}
+	Wheels_CalcTransmit(wheel, num);
 }
 
 void ChassisTask(void const *argument)
@@ -75,8 +108,28 @@ void ChassisTask(void const *argument)
 				vrow = (rx + rx_DEADBAND) * spin_ratio;
 			}
 		}
-
-		Chassis_SetSpeed(wheels, 4, vx, vy, vrow);
+		if ((ctrl_data->buttons & (1 << 0)) && (RunningState == Normal))
+		{
+			RunningState = HallCorrecting;
+			for (int i = 0; i < 4; i++)
+			{
+				HallCorrectingStartPos[i] = wheels[i].now_rot_pos;
+			}
+			
+			HallCorrectingStartTick = HAL_GetTick();
+		}
+		
+		switch (RunningState)
+		{
+		case Normal:
+			Chassis_SetSpeed(wheels, 4, vx, vy, vrow);
+			break;
+		case HallCorrecting:
+			Chassis_HallCorrecting(wheels, 4, HallCorrectingStartTick);
+			break;
+		default:
+			break;
+		}
 
 		osDelayUntil(&PreviousWakeTime, 2);
 	}

@@ -46,7 +46,7 @@ LiftData_t lift_data = {
 	.last_up_tick = 0,
 	.button_min_time = 500,
 	.max_pos = 6400,
-	.min_pos = 100,
+	.min_pos = 50,
 	.max_speed = 4000,
 	.vice_down_pos = 6000,
 	.vice_up_pos = 6100,
@@ -203,13 +203,17 @@ void UpperComTask(void const *argument)
 		/* 爪子旋转 */
 		if (ctrl_data->buttons & (1 << 3))
 		{
-			if (UpperTxData.lift >= 3000) // 爪子太低时不允许旋转
+			if (UpperTxData.lift >= 2000) // 爪子太低时不允许旋转
 			{
 				if (claw_spin.last_tick + claw_spin.button_min_time < HAL_GetTick())
 				{
 					claw_spin.last_tick = HAL_GetTick();
 					claw_spin.is_face_up = !claw_spin.is_face_up;
 				}
+			}
+			else
+			{
+				Beep();
 			}
 		}
 
@@ -243,11 +247,11 @@ void UpperComTask(void const *argument)
 			ResetingTick += UpperComCycle;
 			if (ResetingTick < 1000)
 			{
-				mavlink_msg_upper_send(MAVLINK_COMM_1, 0x00, 4000, 0, UpperTxData.claw_spin, 0, 0, 0);
+				mavlink_msg_upper_send(MAVLINK_COMM_1, 0x00, 3500, 0, UpperTxData.claw_spin, 0, 0, 0);
 			}
 			else
 			{
-				mavlink_msg_upper_send(MAVLINK_COMM_1, 0x00, 4000, 0, 0, 0, 0, 0);
+				mavlink_msg_upper_send(MAVLINK_COMM_1, 0x00, 3500, 0, 0, 0, 0, 0);
 			}
 		}
 		osDelayUntil(&PreviousWakeTime, UpperComCycle);
