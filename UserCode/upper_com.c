@@ -17,6 +17,7 @@
 mavlink_upper_t UpperTxData;
 
 extern bool Reseting;
+uint32_t ResetingTick = 0;
 
 #define ServoTypePos 0
 #define ServoTypeSpeed 1
@@ -227,7 +228,15 @@ void UpperComTask(void const *argument)
 		}
 		else
 		{
-			mavlink_msg_upper_send(MAVLINK_COMM_1, 0x00, 3000, 0, 0, 0, 0, 0);
+			ResetingTick += UpperComCycle;
+			if (ResetingTick < 1000)
+			{
+				mavlink_msg_upper_send(MAVLINK_COMM_1, 0x00, 4000, 0, UpperTxData.claw_spin, 0, 0, 0);
+			}
+			else
+			{
+				mavlink_msg_upper_send(MAVLINK_COMM_1, 0x00, 4000, 0, 0, 0, 0, 0);
+			}
 		}
 		osDelayUntil(&PreviousWakeTime, UpperComCycle);
 	}
