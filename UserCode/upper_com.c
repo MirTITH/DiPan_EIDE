@@ -27,9 +27,15 @@ uint32_t ResetingTick = 0;
 #define Lift_Pos_Num 5
 typedef struct
 {
-	float lift_pos[Lift_Pos_Num];
-	bool is_vice_lift_up[Lift_Pos_Num];
-	int now_pos_id; // 0 ~ (Lift_Pos_Num - 1)
+	// float lift_pos[Lift_Pos_Num];
+	// bool is_vice_lift_up[Lift_Pos_Num];
+	// int now_pos_id; // 0 ~ (Lift_Pos_Num - 1)
+	float min_pos;
+	float max_pos;
+	float vice_up_pos;
+	float vice_down_pos;
+	float max_speed;
+	int16_t joystick_deadband;
 	uint32_t last_up_tick;
 	uint32_t last_down_tick;
 	uint32_t button_min_time;
@@ -39,17 +45,23 @@ LiftData_t lift_data = {
 	.last_down_tick = 0,
 	.last_up_tick = 0,
 	.button_min_time = 500,
-	.now_pos_id = 0,
-	.lift_pos[0] = 0,
-	.lift_pos[1] = 2850,
-	.lift_pos[2] = 4650,
-	.lift_pos[3] = 6450,
-	.lift_pos[4] = 6300,
-	.is_vice_lift_up[0] = false,
-	.is_vice_lift_up[1] = false,
-	.is_vice_lift_up[2] = false,
-	.is_vice_lift_up[3] = false,
-	.is_vice_lift_up[4] = true
+	.max_pos = 6400,
+	.min_pos = 50,
+	.max_speed = 3000,
+	.vice_down_pos = 6000,
+	.vice_up_pos = 6100,
+	.joystick_deadband = 100
+	// .now_pos_id = 0,
+	// .lift_pos[0] = 0,
+	// .lift_pos[1] = 2850,
+	// .lift_pos[2] = 4650,
+	// .lift_pos[3] = 6450,
+	// .lift_pos[4] = 6300,
+	// .is_vice_lift_up[0] = false,
+	// .is_vice_lift_up[1] = false,
+	// .is_vice_lift_up[2] = false,
+	// .is_vice_lift_up[3] = false,
+	// .is_vice_lift_up[4] = true
 	};
 
 typedef struct
@@ -119,35 +131,35 @@ void UpperComTask(void const *argument)
 	for (;;)
 	{
 		/* 升降 */
-		if ((ctrl_data->buttons & (1 << 1)) || (ctrl_data -> right_y > 1500)) // 主升降升
+		if (ctrl_data->right_y > lift_data.joystick_deadband) // 主升降升
 		{
-			if (lift_data.last_up_tick + lift_data.button_min_time < HAL_GetTick())
-			{
-				lift_data.last_up_tick = HAL_GetTick();
-				if (lift_data.now_pos_id < Lift_Pos_Num - 1)
-				{
-					lift_data.now_pos_id++;
-					Beep();
-				}
-			}
+			UpperTxData.lift += (ctrl_data->right_y - lift_data.joystick_deadband) /
+								(2048.0f - lift_data.joystick_deadband) *
+								lift_data.max_speed * (UpperComCycle / 1000.0f);
 		}
 
-		if ((ctrl_data->buttons & (1 << 0)) || (ctrl_data -> right_y < -1500)) // 主升降降
+		if (ctrl_data->right_y < -lift_data.joystick_deadband) // 主升降降
 		{
-			if (lift_data.last_down_tick + lift_data.button_min_time < HAL_GetTick())
-			{
-				lift_data.last_down_tick = HAL_GetTick();
-				if (lift_data.now_pos_id > 0)
-				{
-					lift_data.now_pos_id--;
-					Beep();
-				}
-			}
+			UpperTxData.lift += (ctrl_data->right_y + lift_data.joystick_deadband) /
+								(2048.0f - lift_data.joystick_deadband) *
+								lift_data.max_speed * (UpperComCycle / 1000.0f);
 		}
 
-		UpperTxData.lift = lift_data.lift_pos[lift_data.now_pos_id];
-		UpperTxData.vice_lift = lift_data.is_vice_lift_up[lift_data.now_pos_id]; // 副升降
-		
+		if (UpperTxData.lift > lift_data.max_pos)
+			UpperTxData.lift = lift_data.max_pos;
+		if (UpperTxData.lift < lift_data.min_pos)
+			UpperTxData.lift = lift_data.min_pos;
+
+		// 副升降
+		if (UpperTxData.lift >= lift_data.vice_up_pos)
+		{
+			UpperTxData.vice_lift = true;
+		}
+
+		if (UpperTxData.lift <= lift_data.vice_down_pos)
+		{
+			UpperTxData.vice_lift = false;
+		}
 
 		/* 爪子开合DJI */
 		if (ctrl_data->buttons & (1 << 2))
