@@ -18,6 +18,8 @@
 #include "uart_device.h"
 #include "string.h"
 
+extern bool Reseting;
+
 typedef struct
 {
 	double wheel_distance_x; // 两个轮子之间的距离
@@ -145,15 +147,27 @@ void Wheel_Hall_Callback(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, uni_wheel_t *wh
 
 void Wheels_CANTransmit(uni_wheel_t wheel[])
 {
-	CanTransmit_DJI_5678(&hcan1,
-						 wheel[0].hDJI->speedPID.output,
-						 wheel[1].hDJI->speedPID.output,
-						 wheel[2].hDJI->speedPID.output,
-						 wheel[3].hDJI->speedPID.output);
-	
-	for (int i = 0; i < 4; i++)
+	if (Reseting == false)
 	{
-		VESC_CAN_SET_ERPM(&wheel[i].hvesc, wheel[i].exp_speed * wheel[i].speed_ratio);
+		CanTransmit_DJI_5678(&hcan1,
+							 wheel[0].hDJI->speedPID.output,
+							 wheel[1].hDJI->speedPID.output,
+							 wheel[2].hDJI->speedPID.output,
+							 wheel[3].hDJI->speedPID.output);
+
+		for (int i = 0; i < 4; i++)
+		{
+			VESC_CAN_SET_ERPM(&wheel[i].hvesc, wheel[i].exp_speed * wheel[i].speed_ratio);
+		}
+	}
+	else
+	{
+		CanTransmit_DJI_5678(&hcan1, 0, 0, 0, 0);
+
+		for (int i = 0; i < 4; i++)
+		{
+			VESC_CAN_SET_ERPM(&wheel[i].hvesc, 0);
+		}
 	}
 }
 

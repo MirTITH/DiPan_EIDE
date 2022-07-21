@@ -16,6 +16,8 @@
 
 mavlink_upper_t UpperTxData;
 
+extern bool Reseting;
+
 #define ServoTypePos 0
 #define ServoTypeSpeed 1
 
@@ -35,12 +37,12 @@ typedef struct
 LiftData_t lift_data = {
 	.last_down_tick = 0,
 	.last_up_tick = 0,
-	.button_min_time = 300,
+	.button_min_time = 500,
 	.now_pos_id = 0,
 	.lift_pos[0] = 0,
-	.lift_pos[1] = 2750,
-	.lift_pos[2] = 4500,
-	.lift_pos[3] = 6300,
+	.lift_pos[1] = 2850,
+	.lift_pos[2] = 4650,
+	.lift_pos[3] = 6450,
 	.lift_pos[4] = 6300,
 	.is_vice_lift_up[0] = false,
 	.is_vice_lift_up[1] = false,
@@ -116,7 +118,7 @@ void UpperComTask(void const *argument)
 	for (;;)
 	{
 		/* 升降 */
-		if (ctrl_data->buttons & (1 << 1)) // 主升降升
+		if ((ctrl_data->buttons & (1 << 1)) || (ctrl_data -> right_y > 1500)) // 主升降升
 		{
 			if (lift_data.last_up_tick + lift_data.button_min_time < HAL_GetTick())
 			{
@@ -129,7 +131,7 @@ void UpperComTask(void const *argument)
 			}
 		}
 
-		if (ctrl_data->buttons & (1 << 0)) // 主升降降
+		if ((ctrl_data->buttons & (1 << 0)) || (ctrl_data -> right_y < -1500)) // 主升降降
 		{
 			if (lift_data.last_down_tick + lift_data.button_min_time < HAL_GetTick())
 			{
@@ -219,8 +221,14 @@ void UpperComTask(void const *argument)
 
 		// UD_printf("lift:%f\n", UpperTxData.lift);
 		// UD_printf("claw_OC_DJI:%f\n", UpperTxData.claw_OC_DJI);
-
-		mavlink_msg_upper_send_struct(MAVLINK_COMM_1, &UpperTxData);
+		if(Reseting == false)
+		{
+			mavlink_msg_upper_send_struct(MAVLINK_COMM_1, &UpperTxData);
+		}
+		else
+		{
+			mavlink_msg_upper_send(MAVLINK_COMM_1, 0x00, 3000, 0, 0, 0, 0, 0);
+		}
 		osDelayUntil(&PreviousWakeTime, UpperComCycle);
 	}
 }

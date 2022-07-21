@@ -38,6 +38,8 @@ defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 bool pnt_UC_Debug_Data = false;
 int reboot_counter = 0;
 
+bool Reseting = false;
+
 void TestTask(void const *argument);
 
 mavlink_controller_t ControllerData = {0};
@@ -76,7 +78,9 @@ void StartDefaultTask(void const *argument)
 			if (reboot_counter > 50)
 			{
 				BeepSet(0);
+				Reseting = true;
 				osDelay(500);
+				
 				HAL_NVIC_SystemReset();
 			}
 
