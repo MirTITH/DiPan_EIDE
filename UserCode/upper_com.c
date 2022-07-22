@@ -48,8 +48,8 @@ LiftData_t lift_data = {
 	.max_pos = 6400,
 	.min_pos = 50,
 	.max_speed = 4000,
-	.vice_down_pos = 6000,
-	.vice_up_pos = 6100,
+	.vice_down_pos = 4500,
+	.vice_up_pos = 6300,
 	.joystick_deadband = 100
 	// .now_pos_id = 0,
 	// .lift_pos[0] = 0,
@@ -126,6 +126,7 @@ void UpperComTask(void const *argument)
 	UpperTxData.servo_type = (ServoTypePos << 0) |
 							 (ServoTypePos << 1) |
 							 (ServoTypePos << 2);
+	UpperTxData.lift = lift_data.max_pos;
 
 	uint32_t PreviousWakeTime = osKernelSysTick();
 	for (;;)
@@ -245,14 +246,7 @@ void UpperComTask(void const *argument)
 		else
 		{
 			ResetingTick += UpperComCycle;
-			if (ResetingTick < 1000)
-			{
-				mavlink_msg_upper_send(MAVLINK_COMM_1, 0x00, 3500, 0, UpperTxData.claw_spin, 0, 0, 0);
-			}
-			else
-			{
-				mavlink_msg_upper_send(MAVLINK_COMM_1, 0x00, 3500, 0, 0, 0, 0, 0);
-			}
+			mavlink_msg_upper_send(MAVLINK_COMM_1, 0x00, lift_data.max_pos, 0, UpperTxData.claw_spin, 0, 0, 0);
 		}
 		osDelayUntil(&PreviousWakeTime, UpperComCycle);
 	}

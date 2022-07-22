@@ -17,6 +17,7 @@
 #include "math.h"
 #include "uart_device.h"
 #include "useful_constant.h"
+#include "beep.h"
 
 #define rx_DEADBAND 100.0
 
@@ -72,12 +73,26 @@ void Chassis_HallCorrecting(uni_wheel_t *wheel, int num, uint32_t start_tick)
 	Wheels_CalcTransmit(wheel, num);
 }
 
+#define SpeedRatioNum 2
+
+struct
+{
+	double ratio[SpeedRatioNum];
+	int id;
+	uint32_t last_tick;
+	uint32_t button_min_time;
+} SpeedRatio = {
+	.ratio[0] = 1 / 2048.0,
+	.ratio[1] = 1 / 1024.0,
+	.button_min_time = 500,
+	.last_tick = 0,
+	.id = 0};
+
 void ChassisTask(void const *argument)
 {
 	const mavlink_controller_t *ctrl_data = argument;
 	Chassis_Init(wheels);
 	double vx, vy, vrow;
-	double speed_ratio = 1.0 / 1024.0;
 	double spin_ratio = 1.0 / 1024.0;
 	double lx, ly, rx;
 
@@ -87,11 +102,31 @@ void ChassisTask(void const *argument)
 
 	for (;;)
 	{
+		/* 速度切换 */
+		if (ctrl_data->buttons & (1 << 7))
+		{
+			if (SpeedRatio.last_tick + SpeedRatio.button_min_time < HAL_GetTick())
+			{
+				SpeedRatio.last_tick = HAL_GetTick();
+				if (SpeedRatio.id == 0)
+				{
+					SpeedRatio.id = 1;
+					Beep();
+					Beep();
+				}
+				else
+				{
+					SpeedRatio.id = 0;
+					Beep();
+				}
+			}
+		}
+
 		DeadBand(ctrl_data->left_x, ctrl_data->left_y, &lx, &ly, 100);
 		rx = ctrl_data->right_x;
 
-		vx = lx * speed_ratio;
-		vy = ly * speed_ratio;
+		vx = lx * SpeedRatio.ratio[SpeedRatio.id];
+		vy = ly * SpeedRatio.ratio[SpeedRatio.id];
 
 		if (fabs(rx) <= rx_DEADBAND)
 		{
@@ -115,10 +150,10 @@ void ChassisTask(void const *argument)
 			{
 				HallCorrectingStartPos[i] = wheels[i].now_rot_pos;
 			}
-			
+
 			HallCorrectingStartTick = HAL_GetTick();
 		}
-		
+
 		switch (RunningState)
 		{
 		case Normal:

@@ -79,7 +79,7 @@ void StartDefaultTask(void const *argument)
 			{
 				BeepSet(0);
 				Reseting = true;
-				osDelay(1500);
+				osDelay(1000);
 				
 				HAL_NVIC_SystemReset();
 			}
