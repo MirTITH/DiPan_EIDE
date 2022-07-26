@@ -65,7 +65,7 @@ void Chassis_HallCorrecting(uni_wheel_t *wheel, int num, uint32_t start_tick)
 		Wheel_Set(&wheel[i], 0, HallCorrectingStartPos[i] + pos);
 	}
 	
-	if (pos > 1.5 * 2 * M_PI)
+	if (pos > 1.1 * 2 * M_PI)
 	{
 		RunningState = Normal;
 	}
@@ -95,7 +95,9 @@ void ChassisTask(void const *argument)
 	double spin_ratio = 1.0 / 1024.0;
 	double lx, ly, rx;
 
-	osDelay(500);
+	osDelay(200);
+
+	Beep();
 
 	uint32_t PreviousWakeTime = osKernelSysTick();
 
