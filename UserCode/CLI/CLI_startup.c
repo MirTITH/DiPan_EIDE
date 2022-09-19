@@ -30,6 +30,6 @@ void CLI_Init(UART_HandleTypeDef *huart)
 #if (configGENERATE_RUN_TIME_STATS == 1)
 unsigned long getRunTimeCounterValue(void)
 {
-	return xTaskGetTickCount(); //返回当前滴答数
+	return HAL_GetTick(); //返回当前滴答数
 }
 #endif

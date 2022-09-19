@@ -1,110 +1,106 @@
 {
   "name": "DiPan_EIDE",
   "type": "ARM",
-  "mode": "Debug",
-  "toolchain": "GCC",
-  "dependenceList": [
-    {
-      "groupName": "custom",
-      "depList": [
-        {
-          "name": "default",
-          "incList": [],
-          "libList": [],
-          "sourceDirList": [],
-          "defineList": [
-            "USE_HAL_DRIVER",
-            "STM32F407xx"
-          ]
-        }
-      ]
-    }
-  ],
-  "compileConfig": {
-    "cpuType": "Cortex-M4",
-    "floatingPointHardware": "single",
-    "useCustomScatterFile": false,
-    "scatterFilePath": "STM32CubeIDE/STM32F407VETX_FLASH.ld",
-    "storageLayout": {
-      "RAM": [
-        {
-          "tag": "IRAM",
-          "id": 1,
-          "mem": {
-            "startAddr": "0x20000000",
-            "size": "0x5000"
-          },
-          "isChecked": true,
-          "noInit": false
-        }
-      ],
-      "ROM": [
-        {
-          "tag": "IROM",
-          "id": 1,
-          "mem": {
-            "startAddr": "0x08000000",
-            "size": "0x10000"
-          },
-          "isChecked": true,
-          "isStartup": true
-        }
-      ]
-    },
-    "options": "null"
-  },
-  "uploader": "OpenOCD",
+  "dependenceList": [],
   "srcDirs": [
-    "./Core",
-    "./Drivers",
-    "./Middlewares",
-    "./STM32CubeIDE",
-    "./UserCode"
+    "Core",
+    "Drivers",
+    "Middlewares",
+    "STM32CubeIDE",
+    "UserCode"
   ],
   "virtualFolder": {
     "name": "<virtual_root>",
     "files": [],
     "folders": []
   },
-  "excludeList": [],
   "outDir": "build",
   "deviceName": null,
   "packDir": null,
-  "uploadConfig": {
-    "bin": "",
-    "target": "stm32f4x",
-    "interface": "cmsis-dap",
-    "baseAddr": "0x08000000"
-  },
-  "uploadConfigMap": {
-    "JLink": {
-      "bin": "",
-      "baseAddr": "0x08000000",
-      "cpuInfo": {
-        "vendor": "ST",
-        "cpuName": "STM32F407VE"
-      },
-      "proType": 1,
-      "speed": 8000,
-      "otherCmds": ""
-    },
-    "OpenOCD": {
-      "bin": "",
-      "target": "stm32f4x",
-      "interface": "cmsis-dap",
-      "baseAddr": "0x08000000"
-    },
-    "pyOCD": {
-      "bin": "",
-      "targetName": "cortex_m",
-      "baseAddr": "0x08000000",
-      "speed": "4M",
-      "config": ".eide/debug.pyocd.yaml"
-    }
-  },
   "miscInfo": {
     "uid": "7bbb3b089ec11702e4e75fae093ffffc"
   },
-  "targets": {},
-  "version": "3.1"
+  "targets": {
+    "Debug": {
+      "excludeList": [],
+      "toolchain": "GCC",
+      "compileConfig": {
+        "cpuType": "Cortex-M4",
+        "floatingPointHardware": "single",
+        "useCustomScatterFile": false,
+        "scatterFilePath": "STM32CubeIDE/STM32F407VETX_FLASH.ld",
+        "storageLayout": {
+          "RAM": [
+            {
+              "tag": "IRAM",
+              "id": 1,
+              "mem": {
+                "startAddr": "0x20000000",
+                "size": "0x5000"
+              },
+              "isChecked": true,
+              "noInit": false
+            }
+          ],
+          "ROM": [
+            {
+              "tag": "IROM",
+              "id": 1,
+              "mem": {
+                "startAddr": "0x08000000",
+                "size": "0x10000"
+              },
+              "isChecked": true,
+              "isStartup": true
+            }
+          ]
+        },
+        "options": "null"
+      },
+      "uploader": "OpenOCD",
+      "uploadConfig": {
+        "bin": "",
+        "target": "stm32f4x",
+        "interface": "cmsis-dap",
+        "baseAddr": "0x08000000"
+      },
+      "uploadConfigMap": {
+        "JLink": {
+          "bin": "",
+          "baseAddr": "0x08000000",
+          "cpuInfo": {
+            "vendor": "ST",
+            "cpuName": "STM32F407VE"
+          },
+          "proType": 1,
+          "speed": 8000,
+          "otherCmds": ""
+        },
+        "OpenOCD": {
+          "bin": "",
+          "target": "stm32f4x",
+          "interface": "cmsis-dap",
+          "baseAddr": "0x08000000"
+        },
+        "pyOCD": {
+          "bin": "",
+          "targetName": "cortex_m",
+          "baseAddr": "0x08000000",
+          "speed": "4M",
+          "config": ".eide/debug.pyocd.yaml"
+        }
+      },
+      "custom_dep": {
+        "name": "default",
+        "incList": [],
+        "libList": [],
+        "sourceDirList": [],
+        "defineList": [
+          "USE_HAL_DRIVER",
+          "STM32F407xx"
+        ]
+      }
+    }
+  },
+  "version": "3.3"
 }
